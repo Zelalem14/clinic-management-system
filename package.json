@@ -1,0 +1,26 @@
+{
+  "name": "clinic-management-system",
+  "version": "1.0.0",
+  "description": "Full-Stack Responsive Clinic Management System with Node.js, Express, Sequelize ORM, MySQL/SQLite, and React + Tailwind CSS",
+  "scripts": {
+    "server": "npm --prefix server start",
+    "server:dev": "npm --prefix server run dev",
+    "server:seed": "npm --prefix server run seed",
+    "server:test": "npm --prefix server test",
+    "client": "npm --prefix client run dev",
+    "client:build": "npm --prefix client run build",
+    "install:all": "npm --prefix server install && npm --prefix client install",
+    "seed": "npm --prefix server run seed"
+  },
+  "keywords": [
+    "clinic",
+    "hospital",
+    "react",
+    "express",
+    "sequelize",
+    "mysql",
+    "healthcare"
+  ],
+  "author": "Clinic Management Development Team",
+  "license": "MIT"
+}
