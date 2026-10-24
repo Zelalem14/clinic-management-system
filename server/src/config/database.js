@@ -3,11 +3,34 @@ const path = require('path');
 const fs = require('fs');
 require('dotenv').config();
 
-const dialect = process.env.DB_DIALECT || 'sqlite'; // Default to sqlite for instant out-of-the-box operation, easily switched to mysql in .env
+const dialect = process.env.DB_DIALECT || (process.env.DATABASE_URL ? 'mysql' : 'sqlite');
 
 let sequelize;
 
-if (dialect === 'mysql') {
+if (process.env.DATABASE_URL) {
+  // Support standard cloud database connection strings (e.g. TiDB Cloud, Aiven, Railway)
+  const isSsl = process.env.DB_SSL !== 'false';
+  sequelize = new Sequelize(process.env.DATABASE_URL, {
+    dialect: 'mysql',
+    logging: process.env.DB_LOGGING === 'true' ? console.log : false,
+    dialectOptions: isSsl ? {
+      ssl: {
+        rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED === 'true'
+      }
+    } : {},
+    pool: {
+      max: 10,
+      min: 0,
+      acquire: 30000,
+      idle: 10000
+    },
+    define: {
+      timestamps: true,
+      underscored: true
+    }
+  });
+} else if (dialect === 'mysql') {
+  const isSsl = process.env.DB_SSL === 'true';
   sequelize = new Sequelize(
     process.env.DB_NAME || 'clinic_db',
     process.env.DB_USER || 'root',
@@ -17,6 +40,11 @@ if (dialect === 'mysql') {
       port: process.env.DB_PORT || 3306,
       dialect: 'mysql',
       logging: process.env.DB_LOGGING === 'true' ? console.log : false,
+      dialectOptions: isSsl ? {
+        ssl: {
+          rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED === 'true'
+        }
+      } : {},
       pool: {
         max: 10,
         min: 0,

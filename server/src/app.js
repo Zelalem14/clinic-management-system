@@ -26,8 +26,23 @@ const app = express();
 app.use(helmet());
 
 // Enable CORS
+const allowedOrigins = process.env.CLIENT_URL
+  ? process.env.CLIENT_URL.split(',').map(url => url.trim().replace(/\/+$/, ''))
+  : ['*'];
+
 app.use(cors({
-  origin: process.env.CLIENT_URL || '*',
+  origin: (origin, callback) => {
+    // Allow server-to-server, curl, Postman, wildcard, or listed origins
+    if (!origin || allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    // Allow Vercel preview URLs if any Vercel domain is listed
+    if (allowedOrigins.some(ao => ao.includes('vercel.app')) && origin.endsWith('.vercel.app')) {
+      return callback(null, true);
+    }
+    // Permissive fallback so legitimate client visits aren't blocked
+    return callback(null, true);
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));

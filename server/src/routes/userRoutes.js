@@ -11,5 +11,6 @@ router.use(authenticate);
 router.get('/', authorize([ROLES.ADMIN]), userController.listUsers);
 router.post('/', authorize([ROLES.ADMIN]), userController.createUser);
 router.put('/:id', authorize([ROLES.ADMIN]), userController.updateUser);
+router.delete('/:id', authorize([ROLES.ADMIN]), userController.deleteUser);
 
 module.exports = router;

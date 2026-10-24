@@ -203,7 +203,7 @@ export const ProcedureDashboard = () => {
                           <div className="space-y-1">
                             {r.items?.map(it => (
                               <div key={it.id} className="text-xs font-semibold text-slate-800">
-                                {it.service?.service_name} (${parseFloat(it.unit_price).toFixed(2)})
+                                {it.service?.service_name} ({parseFloat(it.unit_price).toFixed(2)} ETB)
                               </div>
                             ))}
                           </div>
@@ -215,7 +215,7 @@ export const ProcedureDashboard = () => {
                           <StatusBadge status={r.status} />
                           {!isPaid && (
                             <div className="text-[10px] font-bold text-amber-700 mt-1 flex items-center gap-1">
-                              <Lock className="w-3 h-3" /> Fee required (${parseFloat(r.total_cost).toFixed(2)})
+                              <Lock className="w-3 h-3" /> Fee required ({parseFloat(r.total_cost).toFixed(2)} ETB)
                             </div>
                           )}
                         </td>
@@ -346,8 +346,8 @@ export const ProcedureDashboard = () => {
         >
           <div className="space-y-4 printable-card text-xs text-slate-800">
             <div className="text-center border-b border-slate-200 pb-3">
-              <h3 className="text-base font-extrabold text-slate-900">St. Jude Community Clinic</h3>
-              <p className="text-[11px] text-slate-500">Diagnostic Imaging & Medical Examination Report</p>
+              <h3 className="text-base font-extrabold text-slate-900">Tena Specialty Clinic</h3>
+              <p className="text-[11px] text-slate-500">Diagnostic Imaging & Medical Examination Report (Addis Ababa)</p>
             </div>
 
             <div className="grid grid-cols-2 gap-2 text-[11px] p-3 bg-slate-50 rounded-xl">

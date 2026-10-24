@@ -32,13 +32,13 @@ export const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
     // Receptionist Navigation
     if (role === 'receptionist' || role === 'admin') {
       sections.push({
-        title: 'Reception & Billing',
+        title: 'Reception',
         items: [
-          { to: '/reception', label: 'Reception Dashboard', icon: LayoutDashboard },
+          { to: '/reception', label: 'Reception Home', icon: LayoutDashboard },
           { to: '/reception/register', label: 'Register Patient', icon: UserPlus },
-          { to: '/reception/patients', label: 'Patient Directory', icon: Users },
-          { to: '/reception/payments', label: 'Payment Approvals', icon: CreditCard },
-          { to: '/reception/services', label: 'Clinic Price List', icon: Tag }
+          { to: '/reception/patients', label: 'Patients List', icon: Users },
+          { to: '/reception/payments', label: 'Collect Payments', icon: CreditCard },
+          { to: '/reception/services', label: 'Service Prices', icon: Tag }
         ]
       });
     }
@@ -46,13 +46,13 @@ export const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
     // Doctor Navigation
     if (role === 'doctor' || role === 'admin') {
       sections.push({
-        title: 'Clinical Consultations',
+        title: 'Doctor',
         items: [
-          { to: '/doctor', label: 'Doctor Dashboard', icon: LayoutDashboard },
-          { to: '/doctor/queue', label: 'Waiting Patients Queue', icon: Stethoscope },
-          { to: '/doctor/patients', label: 'Patient Medical Records', icon: Users },
-          { to: '/doctor/results', label: 'Lab & Procedure Results', icon: FileCheck2 },
-          { to: '/doctor/appointments', label: 'Follow-up Appointments', icon: Calendar }
+          { to: '/doctor', label: 'Doctor Home', icon: LayoutDashboard },
+          { to: '/doctor/queue', label: 'Waiting Patients', icon: Stethoscope },
+          { to: '/doctor/patients', label: 'Patient Records', icon: Users },
+          { to: '/doctor/results', label: 'Lab Test Results', icon: FileCheck2 },
+          { to: '/doctor/appointments', label: 'Follow-up Visits', icon: Calendar }
         ]
       });
     }
@@ -60,31 +60,23 @@ export const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
     // Laboratory Navigation
     if (role === 'lab_tech' || role === 'admin') {
       sections.push({
-        title: 'Laboratory Diagnostic',
+        title: 'Laboratory',
         items: [
-          { to: '/laboratory', label: 'Laboratory Dashboard', icon: LayoutDashboard },
-          { to: '/laboratory/requests', label: 'Test Requests Queue', icon: TestTubes }
+          { to: '/laboratory', label: 'Laboratory Home', icon: LayoutDashboard },
+          { to: '/laboratory/requests', label: 'Lab Tests Queue', icon: TestTubes }
         ]
       });
     }
 
-    // Radiology & Diagnostic Procedures (Ultrasound / X-ray)
-    sections.push({
-      title: 'Procedures & Imaging',
-      items: [
-        { to: '/procedures', label: 'Ultrasound & X-Ray Queue', icon: Radiation }
-      ]
-    });
-
     // Administrator Navigation
     if (role === 'admin') {
       sections.push({
-        title: 'Administration & Governance',
+        title: 'Clinic Administration',
         items: [
-          { to: '/admin', label: 'Admin Overview', icon: LayoutDashboard },
-          { to: '/admin/reports', label: 'Revenue & Audit Reports', icon: FileSpreadsheet },
-          { to: '/admin/services', label: 'Service & Pricing Rules', icon: Tag },
-          { to: '/admin/users', label: 'Staff Accounts & Roles', icon: ShieldCheck },
+          { to: '/admin', label: 'Admin Dashboard', icon: LayoutDashboard },
+          { to: '/admin/users', label: 'Staff Members', icon: ShieldCheck },
+          { to: '/admin/services', label: 'Service Prices', icon: Tag },
+          { to: '/admin/reports', label: 'Revenue Reports', icon: FileSpreadsheet },
           { to: '/admin/settings', label: 'Clinic Information', icon: Settings }
         ]
       });

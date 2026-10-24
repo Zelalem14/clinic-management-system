@@ -3,7 +3,6 @@ import { useAuth } from '../../context/AuthContext';
 import { 
   Building2, 
   LogOut, 
-  User, 
   Menu, 
   X, 
   ShieldCheck, 
@@ -42,7 +41,7 @@ export const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
             <button
               type="button"
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="lg:hidden p-2 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700 focus:outline-none"
+              className="lg:hidden p-2 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700 focus:outline-none cursor-pointer"
               aria-label="Toggle Navigation"
             >
               {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -54,10 +53,10 @@ export const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
               </div>
               <div>
                 <h1 className="text-base sm:text-lg font-bold text-slate-900 leading-tight">
-                  St. Jude Clinic
+                  Tena Specialty Clinic
                 </h1>
                 <span className="text-xs text-slate-500 hidden sm:inline-block">
-                  Integrated Medical & Diagnostic Center
+                  Addis Ababa Healthcare Center
                 </span>
               </div>
             </div>
@@ -82,7 +81,7 @@ export const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
                 <button
                   type="button"
                   onClick={logout}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 rounded-lg transition-all"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 rounded-lg transition-all cursor-pointer"
                   title="Sign out of system"
                 >
                   <LogOut className="w-4 h-4" />

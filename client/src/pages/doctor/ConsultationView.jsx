@@ -19,7 +19,6 @@ import {
   Trash2, 
   ArrowLeft,
   Building2,
-  Radiation,
   Activity
 } from 'lucide-react';
 
@@ -93,6 +92,15 @@ export const ConsultationView = () => {
       // Load active services catalog
       const srvRes = await api.get('/services?active_only=true');
       setAvailableServices(srvRes.data.services || []);
+
+      // If URL specifies tab or visit has completed lab results awaiting review, default to 'results'
+      const params = new URLSearchParams(window.location.search);
+      const hasCompletedResults = visitData.procedure_requests?.some(r => r.results && r.results.length > 0);
+      if (params.get('tab') === 'results' || visitData.status === 'results_ready' || (hasCompletedResults && !visitData.consultations?.length)) {
+        setActiveTab('results');
+      } else if (params.get('tab')) {
+        setActiveTab(params.get('tab'));
+      }
     } catch (err) {
       console.error('Failed to load consultation:', err);
     } finally {
@@ -155,7 +163,7 @@ export const ConsultationView = () => {
       });
 
       setProcMessage({
-        text: `Request created for $${res.data.payment_required.toFixed(2)}. Sent to Reception payment queue for fee verification.`,
+        text: `Request created for ${res.data.payment_required.toFixed(2)} ETB. Sent to Meron Alemu at Reception payment queue for fee verification.`,
         type: 'success'
       });
 
@@ -337,7 +345,7 @@ export const ConsultationView = () => {
           }`}
         >
           <Stethoscope className="w-4 h-4" />
-          <span>1. Clinical Examination</span>
+          <span>1. Doctor Exam & Notes</span>
         </button>
 
         <button
@@ -350,7 +358,7 @@ export const ConsultationView = () => {
           }`}
         >
           <TestTubes className="w-4 h-4" />
-          <span>2. Order Diagnostics ({existingRequests.length})</span>
+          <span>2. Order Lab Tests ({existingRequests.length})</span>
         </button>
 
         <button
@@ -363,7 +371,7 @@ export const ConsultationView = () => {
           }`}
         >
           <Activity className="w-4 h-4" />
-          <span>3. Diagnostic Results</span>
+          <span>3. Lab Test Results</span>
           {existingRequests.some(r => r.status === 'results_ready' || r.status === 'sent_to_doctor') && (
             <span className="w-2 h-2 rounded-full bg-purple-600 animate-ping" />
           )}
@@ -379,7 +387,7 @@ export const ConsultationView = () => {
           }`}
         >
           <Pill className="w-4 h-4" />
-          <span>4. Prescriptions & Follow-up</span>
+          <span>4. Prescribe Medicines</span>
         </button>
 
         <button
@@ -392,62 +400,78 @@ export const ConsultationView = () => {
           }`}
         >
           <FileText className="w-4 h-4" />
-          <span>Patient Past History</span>
+          <span>Past Medical History</span>
         </button>
       </div>
 
       {/* Tab 1: Clinical Notes & Examination */}
       {activeTab === 'clinical' && (
         <div className="bg-white p-6 rounded-b-2xl border border-slate-200/80 shadow-xs space-y-5">
+          {existingRequests.some(r => r.results && r.results.length > 0) && (
+            <div className="p-4 rounded-xl bg-purple-50 border border-purple-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5 text-purple-950 font-bold text-sm">
+                <TestTubes className="w-5 h-5 text-purple-600 shrink-0" />
+                <span>Laboratory Results are ready for this patient!</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveTab('results')}
+                className="px-4 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold transition-all cursor-pointer shadow-xs"
+              >
+                View Lab Results &rarr;
+              </button>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                Presenting Symptoms & History of Present Illness
+                Patient Symptoms (What does the patient feel?)
               </label>
               <textarea
                 rows="4"
                 value={clinicalForm.symptoms}
                 onChange={(e) => setClinicalForm({ ...clinicalForm, symptoms: e.target.value })}
-                placeholder="Chief complaints, onset, duration, character, radiation, aggravating/relieving factors..."
+                placeholder="Chief complaints, pain location, fever, duration, what makes it worse/better..."
                 className="w-full rounded-xl border border-slate-300 p-3 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
               />
             </div>
 
             <div>
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                Physical Examination Findings
+                Doctor Examination Findings (BP, Pulse, Temp, Physical Exam)
               </label>
               <textarea
                 rows="4"
                 value={clinicalForm.examination_findings}
                 onChange={(e) => setClinicalForm({ ...clinicalForm, examination_findings: e.target.value })}
-                placeholder="Vital signs, general appearance, cardiovascular, respiratory, abdominal, neurological findings..."
+                placeholder="Blood Pressure (e.g. 120/80), Pulse, Temperature (37°C), Chest, Abdomen findings..."
                 className="w-full rounded-xl border border-slate-300 p-3 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
               />
             </div>
 
             <div>
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                Clinical Diagnosis (Provisional or Final) <span className="text-rose-500">*</span>
+                Diagnosis (Illness / Condition) <span className="text-rose-500">*</span>
               </label>
               <textarea
                 rows="3"
                 value={clinicalForm.diagnosis}
                 onChange={(e) => setClinicalForm({ ...clinicalForm, diagnosis: e.target.value })}
-                placeholder="Primary working diagnosis..."
+                placeholder="e.g. Typhoid Fever, Hypertension, Gastroenteritis, Upper Respiratory Infection..."
                 className="w-full rounded-xl border border-slate-300 p-3 text-sm font-semibold text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
               />
             </div>
 
             <div>
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                Treatment Plan & Clinical Notes
+                Doctor Advice & Instructions
               </label>
               <textarea
                 rows="3"
                 value={clinicalForm.treatment_plan}
                 onChange={(e) => setClinicalForm({ ...clinicalForm, treatment_plan: e.target.value })}
-                placeholder="Dietary instructions, non-pharmacological care, red-flag counseling..."
+                placeholder="Diet advice, rest, drink plenty of fluids, when to return to clinic..."
                 className="w-full rounded-xl border border-slate-300 p-3 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
               />
             </div>
@@ -459,31 +483,28 @@ export const ConsultationView = () => {
               onClick={() => setActiveTab('tests')}
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl transition-all cursor-pointer"
             >
-              <span>Proceed to Order Tests / Procedures</span>
+              <span>Order Lab Tests (Optional)</span>
               <span>&rarr;</span>
             </button>
           </div>
         </div>
       )}
 
-      {/* Tab 2: Order Diagnostic Procedures */}
+      {/* Tab 2: Order Laboratory Tests */}
       {activeTab === 'tests' && (
         <div className="space-y-6">
           {/* Active Orders Tracker */}
           {existingRequests.length > 0 && (
             <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs">
               <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-3">
-                Existing Diagnostic Orders for this Visit
+                Lab Tests Ordered for this Visit
               </h3>
               <div className="space-y-3">
                 {existingRequests.map((req) => (
                   <div key={req.id} className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="font-mono text-xs font-bold text-slate-700">Request #{req.id}</span>
-                        <span className="text-xs uppercase font-bold text-brand-700 bg-brand-50 px-2 py-0.5 rounded border border-brand-200">
-                          {req.category}
-                        </span>
+                        <span className="font-mono text-xs font-bold text-slate-700">Lab Request #{req.id}</span>
                         {req.priority === 'urgent' && (
                           <span className="text-[10px] font-bold text-red-700 bg-red-100 px-2 py-0.5 rounded">URGENT</span>
                         )}
@@ -492,14 +513,24 @@ export const ConsultationView = () => {
                     </div>
 
                     <div className="text-xs text-slate-600">
-                      <span className="font-semibold text-slate-700">Reason:</span> {req.clinical_reason || 'N/A'}
+                      <span className="font-semibold text-slate-700">Reason:</span> {req.clinical_reason || 'Routine Lab Test'}
                     </div>
+
+                    {req.status === 'awaiting_payment' ? (
+                      <div className="text-[11px] font-bold text-amber-800 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200">
+                        🔒 Waiting for Reception Fee Approval — The lab cannot begin until Receptionist Meron Alemu approves payment.
+                      </div>
+                    ) : (
+                      <div className="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">
+                        ✅ Fee Approved — Test is unlocked and in Assefa Zegeye's Laboratory Queue.
+                      </div>
+                    )}
 
                     {req.items && (
                       <div className="pt-2 border-t border-slate-200/80 flex flex-wrap gap-2 text-xs">
                         {req.items.map(it => (
                           <span key={it.id} className="px-2.5 py-1 rounded-md bg-white border border-slate-200 font-medium text-slate-800">
-                            {it.service?.service_name} (${parseFloat(it.unit_price).toFixed(2)})
+                            {it.service?.service_name} ({parseFloat(it.unit_price).toFixed(2)} ETB)
                           </span>
                         ))}
                       </div>
@@ -514,10 +545,10 @@ export const ConsultationView = () => {
           <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-5">
             <div>
               <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
-                Order New Diagnostic Procedure / Lab Test
+                Order Laboratory Tests
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
-                Select tests below. Prices are automatically retrieved. The request will route to Reception for fee approval.
+                Click on the tests needed below. Prices in Ethiopian Birr (ETB). The patient pays at reception before the lab runs the test.
               </p>
             </div>
 
@@ -531,26 +562,23 @@ export const ConsultationView = () => {
             )}
 
             <form onSubmit={handleOrderProcedures} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                    Category Filter
+                    Reason for Lab Test / Symptoms
                   </label>
-                  <select
-                    value={procCategory}
-                    onChange={(e) => setProcCategory(e.target.value)}
-                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm bg-white"
-                  >
-                    <option value="laboratory">Laboratory Tests</option>
-                    <option value="ultrasound">Ultrasound Sonography</option>
-                    <option value="x_ray">Digital X-Ray</option>
-                    <option value="procedure">Minor Procedures / ECG</option>
-                  </select>
+                  <input
+                    type="text"
+                    value={procReason}
+                    onChange={(e) => setProcReason(e.target.value)}
+                    placeholder="e.g. Fever workup, rule out typhoid or malaria"
+                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                  />
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                    Clinical Priority
+                    Priority
                   </label>
                   <select
                     value={procPriority}
@@ -558,32 +586,19 @@ export const ConsultationView = () => {
                     className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm bg-white"
                   >
                     <option value="routine">Routine</option>
-                    <option value="urgent">Stat / Urgent</option>
+                    <option value="urgent">Urgent / Stat</option>
                   </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                    Clinical Indication / Reason
-                  </label>
-                  <input
-                    type="text"
-                    value={procReason}
-                    onChange={(e) => setProcReason(e.target.value)}
-                    placeholder="e.g. Febrile illness workup"
-                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-                  />
                 </div>
               </div>
 
               {/* Service Cards Selector */}
               <div>
                 <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
-                  Select Procedure(s) & Tests:
+                  Select Lab Tests to Perform:
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 max-h-60 overflow-y-auto p-1">
                   {availableServices
-                    .filter(s => s.category === procCategory)
+                    .filter(s => s.category === 'laboratory')
                     .map((service) => {
                       const isSelected = selectedServices.includes(service.id);
                       return (
@@ -601,7 +616,7 @@ export const ConsultationView = () => {
                               {service.service_name}
                             </span>
                             <span className="text-xs font-extrabold text-brand-700 font-mono">
-                              ${parseFloat(service.price).toFixed(2)}
+                              {parseFloat(service.price).toFixed(2)} ETB
                             </span>
                           </div>
                           <span className="text-[10px] text-slate-400 font-mono mt-1">
@@ -616,7 +631,7 @@ export const ConsultationView = () => {
               {/* Order Action */}
               <div className="flex items-center justify-between pt-4 border-t border-slate-100">
                 <div className="text-xs text-slate-600 font-semibold">
-                  {selectedServices.length} items selected
+                  {selectedServices.length} test(s) selected
                 </div>
                 <button
                   type="submit"
@@ -624,7 +639,7 @@ export const ConsultationView = () => {
                   className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl shadow-md shadow-brand-600/20 transition-all disabled:opacity-50 cursor-pointer"
                 >
                   <TestTubes className="w-4 h-4" />
-                  <span>{isOrderingProc ? 'Submitting...' : 'Send Request to Reception Payment Queue'}</span>
+                  <span>{isOrderingProc ? 'Submitting...' : 'Send Test Order to Lab & Reception'}</span>
                 </button>
               </div>
             </form>
@@ -636,7 +651,7 @@ export const ConsultationView = () => {
       {activeTab === 'results' && (
         <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
           <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2">
-            Completed Diagnostic Findings & Observations
+            Completed Laboratory Results
           </h3>
 
           {existingRequests.every(r => !r.results || r.results.length === 0) ? (
@@ -644,34 +659,58 @@ export const ConsultationView = () => {
               <Clock className="w-10 h-10 mx-auto text-slate-300 mb-2" />
               <p className="text-sm font-semibold text-slate-700">No Finalized Results Yet</p>
               <p className="text-xs text-slate-400 mt-1">
-                Once the laboratory technician or procedure staff record results, they will instantly appear here.
+                Once Laboratory Technician Assefa Zegeye completes tests, the findings will instantly appear here.
               </p>
             </div>
           ) : (
             <div className="space-y-4">
               {existingRequests.map(req => (
                 req.results && req.results.map(res => (
-                  <div key={res.id} className="p-4 rounded-xl border border-purple-200 bg-purple-50/20 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-sm text-purple-950">{res.test_name}</span>
-                      <span className="text-xs text-slate-500">
+                  <div key={res.id} className="p-5 rounded-2xl border border-purple-200 bg-purple-50/20 shadow-xs space-y-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-purple-100 pb-2">
+                      <div>
+                        <span className="font-bold text-base text-purple-950 flex items-center gap-2">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                          <span>{res.test_name}</span>
+                        </span>
+                        <div className="text-xs text-slate-500 mt-0.5">
+                          Tested by: <span className="font-semibold text-slate-800">{res.technician?.name || 'Assefa Zegeye (Lab Tech)'}</span>
+                        </div>
+                      </div>
+                      <span className="text-xs font-mono text-purple-700 bg-purple-100 px-3 py-1 rounded-full font-semibold">
                         Completed: {new Date(res.completed_at).toLocaleString()}
                       </span>
                     </div>
 
-                    <div className="text-xs font-mono p-3 bg-white rounded-lg border border-purple-100 text-slate-800">
-                      <span className="font-bold text-slate-900 block mb-1">Findings / Report:</span>
-                      {res.findings}
+                    <div className="p-4 bg-white rounded-xl border border-purple-200 space-y-1">
+                      <span className="text-[11px] font-bold text-purple-800 uppercase tracking-wider block">
+                        Laboratory Findings & Test Values:
+                      </span>
+                      <p className="text-sm font-mono font-semibold text-slate-900 whitespace-pre-wrap leading-relaxed">
+                        {res.findings}
+                      </p>
                     </div>
 
                     {res.observations && (
-                      <div className="text-xs text-slate-600">
-                        <span className="font-semibold text-slate-800">Technician Observations:</span> {res.observations}
+                      <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-700">
+                        <span className="font-bold text-slate-900">Lab Technician Observations: </span>
+                        <span>{res.observations}</span>
                       </div>
                     )}
                   </div>
                 ))
               ))}
+
+              <div className="pt-4 border-t border-slate-100 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('prescription')}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl shadow-md shadow-brand-600/20 transition-all cursor-pointer"
+                >
+                  <Pill className="w-4 h-4" />
+                  <span>Proceed to Prescribe Medicines &rarr;</span>
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -869,8 +908,8 @@ export const ConsultationView = () => {
               <div className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-600 text-white mb-1">
                 <CheckCircle2 className="w-5 h-5" />
               </div>
-              <h3 className="text-base font-extrabold text-slate-900">St. Jude Community Clinic</h3>
-              <p className="text-[11px] text-slate-500">Consultation Summary & Prescription Slip</p>
+              <h3 className="text-base font-extrabold text-slate-900">Tena Specialty Clinic</h3>
+              <p className="text-[11px] text-slate-500">Consultation Summary & Prescription Slip (Addis Ababa)</p>
             </div>
 
             <div className="grid grid-cols-2 gap-2 text-[11px] py-2 border-b border-slate-100">

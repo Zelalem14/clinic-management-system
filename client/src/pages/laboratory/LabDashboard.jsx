@@ -164,10 +164,10 @@ export const LabDashboard = () => {
             type="button"
             onClick={() => setStatusFilter('awaiting_payment')}
             className={`px-3 py-1.5 rounded-lg transition-all ${
-              statusFilter === 'awaiting_payment' ? 'bg-amber-500 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              statusFilter === 'awaiting_payment' ? 'bg-amber-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            Awaiting Payment
+            🔒 Waiting for Reception Payment
           </button>
           <button
             type="button"
@@ -176,7 +176,7 @@ export const LabDashboard = () => {
               statusFilter === 'payment_approved' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            Payment Approved (Ready)
+            ✅ Ready to Test (Paid)
           </button>
           <button
             type="button"
@@ -194,8 +194,17 @@ export const LabDashboard = () => {
               statusFilter === 'sent_to_doctor' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            Sent to Doctor
+            Results Sent to Doctor
           </button>
+        </div>
+      </div>
+
+      {/* Reception Approval Notice Banner */}
+      <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 flex items-start gap-3 text-xs leading-relaxed">
+        <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+        <div>
+          <span className="font-bold text-sm block text-amber-950">Reception Payment Approval Rule:</span>
+          The laboratory technician can only start billable tests after payment is verified and approved by the Receptionist. Tests awaiting payment are locked.
         </div>
       </div>
 
@@ -286,9 +295,15 @@ export const LabDashboard = () => {
 
                         <td className="px-6 py-4">
                           <StatusBadge status={r.status} />
-                          {!isPaid && (
-                            <div className="text-[10px] font-bold text-amber-700 mt-1 flex items-center gap-1">
-                              <Lock className="w-3 h-3" /> Fee required ($ {parseFloat(r.total_cost).toFixed(2)})
+                          {!isPaid ? (
+                            <div className="text-[11px] font-bold text-amber-800 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200 mt-1.5 flex items-center gap-1.5">
+                              <Lock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                              <span>Waiting for Reception Payment ({parseFloat(r.total_cost).toFixed(2)} ETB)</span>
+                            </div>
+                          ) : (
+                            <div className="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 mt-1.5 flex items-center gap-1.5">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                              <span>Payment Approved (Fee Cleared)</span>
                             </div>
                           )}
                         </td>
@@ -298,17 +313,17 @@ export const LabDashboard = () => {
                             <button
                               type="button"
                               disabled
-                              className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-100 text-slate-400 rounded-lg text-xs font-semibold cursor-not-allowed border border-slate-200"
-                              title="Payment must be approved by Reception before starting test"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-400 rounded-lg text-xs font-bold cursor-not-allowed border border-slate-200"
+                              title="Receptionist Meron Alemu must approve payment before you can start this test"
                             >
                               <Lock className="w-3.5 h-3.5" />
-                              <span>Locked (Unpaid)</span>
+                              <span>Locked (Needs Reception Approval)</span>
                             </button>
                           ) : r.status === 'payment_approved' ? (
                             <button
                               type="button"
                               onClick={() => handleStartTest(r)}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+                              className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-sm transition-colors cursor-pointer"
                             >
                               <Play className="w-3.5 h-3.5" />
                               <span>Start Test</span>
@@ -438,8 +453,8 @@ export const LabDashboard = () => {
               <div className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-purple-600 text-white mb-1">
                 <TestTubes className="w-5 h-5" />
               </div>
-              <h3 className="text-base font-extrabold text-slate-900">St. Jude Community Diagnostic Center</h3>
-              <p className="text-[11px] text-slate-500">Department of Clinical Pathology & Medical Diagnostics</p>
+              <h3 className="text-base font-extrabold text-slate-900">Tena Specialty Diagnostic Center</h3>
+              <p className="text-[11px] text-slate-500">Department of Pathology & Medical Laboratory (Addis Ababa)</p>
               <div className="mt-1 font-mono font-bold text-xs text-purple-800">FINAL LABORATORY INVESTIGATION REPORT</div>
             </div>
 

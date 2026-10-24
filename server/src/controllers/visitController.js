@@ -8,6 +8,8 @@ const {
   Service,
   Consultation,
   ProcedureRequest,
+  ProcedureRequestItem,
+  LaboratoryResult,
   sequelize
 } = require('../models');
 const { VISIT_STATUS, PAYMENT_STATUS, SERVICE_CATEGORIES } = require('../config/constants');
@@ -49,7 +51,7 @@ const createVisit = async (req, res, next) => {
       order: [['id', 'ASC']],
       transaction: t
     });
-    const consultFee = consultService ? parseFloat(consultService.price) : 25.00;
+    const consultFee = consultService ? parseFloat(consultService.price) : 350.00;
 
     const initialStatus = approve_payment_now
       ? VISIT_STATUS.WAITING_CONSULTATION
@@ -200,7 +202,22 @@ const getVisitById = async (req, res, next) => {
         },
         {
           model: ProcedureRequest,
-          as: 'procedure_requests'
+          as: 'procedure_requests',
+          include: [
+            {
+              model: ProcedureRequestItem,
+              as: 'items',
+              include: [{ model: Service, as: 'service' }]
+            },
+            {
+              model: LaboratoryResult,
+              as: 'results',
+              include: [
+                { model: User, as: 'technician', attributes: ['id', 'name'] },
+                { model: User, as: 'verifier', attributes: ['id', 'name'] }
+              ]
+            }
+          ]
         }
       ]
     });

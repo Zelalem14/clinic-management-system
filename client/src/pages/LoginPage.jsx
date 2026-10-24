@@ -32,6 +32,7 @@ export const LoginPage = () => {
   const demoAccounts = [
     {
       role: 'Receptionist',
+      name: 'Meron Alemu',
       email: 'reception@clinic.com',
       password: 'Recept@123',
       icon: ClipboardList,
@@ -39,6 +40,7 @@ export const LoginPage = () => {
     },
     {
       role: 'Doctor',
+      name: 'Dr. Abebe Kebede',
       email: 'doctor@clinic.com',
       password: 'Doctor@123',
       icon: Stethoscope,
@@ -46,6 +48,7 @@ export const LoginPage = () => {
     },
     {
       role: 'Lab Technician',
+      name: 'Assefa Zegeye',
       email: 'lab@clinic.com',
       password: 'Lab@123',
       icon: TestTubes,
@@ -53,6 +56,7 @@ export const LoginPage = () => {
     },
     {
       role: 'Administrator',
+      name: 'Hussien Seid',
       email: 'admin@clinic.com',
       password: 'Admin@123',
       icon: ShieldCheck,
@@ -79,7 +83,6 @@ export const LoginPage = () => {
     try {
       const loggedInUser = await login(email, password);
 
-      // Navigate to corresponding home
       switch (loggedInUser.role) {
         case 'doctor':
           navigate('/doctor');
@@ -111,10 +114,10 @@ export const LoginPage = () => {
           </div>
         </div>
         <h2 className="mt-4 text-center text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-          St. Jude Clinic
+          Tena Specialty Clinic
         </h2>
         <p className="mt-1 text-center text-sm text-slate-600">
-          Responsive Clinic & Diagnostic Management System
+          Integrated Healthcare Management System (Addis Ababa, Ethiopia)
         </p>
       </div>
 
@@ -197,10 +200,10 @@ export const LoginPage = () => {
             </button>
           </form>
 
-          {/* Quick Demo Credentials Switcher */}
+          {/* Quick Demo Credentials Switcher with Ethiopian Names */}
           <div className="mt-8 pt-6 border-t border-slate-100">
             <p className="text-xs font-medium text-slate-500 text-center mb-3">
-              Click to autofill Demo Role Credentials:
+              Click to autofill Ethiopian Demo Staff Credentials:
             </p>
             <div className="grid grid-cols-2 gap-2">
               {demoAccounts.map((acc) => {
@@ -214,8 +217,8 @@ export const LoginPage = () => {
                   >
                     <Icon className="w-4 h-4 shrink-0" />
                     <div>
-                      <div className="text-xs font-bold leading-tight">{acc.role}</div>
-                      <div className="text-[10px] text-slate-400 truncate">{acc.email}</div>
+                      <div className="text-xs font-bold leading-tight">{acc.name}</div>
+                      <div className="text-[10px] text-slate-500 font-medium">{acc.role}</div>
                     </div>
                   </button>
                 );

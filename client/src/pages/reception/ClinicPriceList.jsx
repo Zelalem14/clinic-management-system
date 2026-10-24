@@ -49,13 +49,10 @@ export const ClinicPriceList = () => {
           onChange={(e) => setCategory(e.target.value)}
           className="bg-white rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-700 focus:outline-none"
         >
-          <option value="">All Service Departments</option>
+          <option value="">All Services</option>
           <option value="card_registration">Card & Registration</option>
           <option value="consultation">Consultation Fees</option>
           <option value="laboratory">Laboratory Tests</option>
-          <option value="ultrasound">Ultrasound Sonography</option>
-          <option value="x_ray">Digital X-Ray</option>
-          <option value="procedure">Minor Clinical Procedures</option>
         </select>
       </div>
 
@@ -92,7 +89,7 @@ export const ClinicPriceList = () => {
                       {s.description || 'Standard clinic procedure'}
                     </td>
                     <td className="px-6 py-4 text-right font-mono font-extrabold text-slate-900 text-sm">
-                      ${parseFloat(s.price).toFixed(2)}
+                      {parseFloat(s.price).toFixed(2)} ETB
                     </td>
                   </tr>
                 ))}

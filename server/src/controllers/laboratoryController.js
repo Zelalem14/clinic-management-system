@@ -17,19 +17,8 @@ const listLabRequests = async (req, res, next) => {
     const { status, category, search, page = 1, limit = 50 } = req.query;
     const whereClause = {};
 
-    // By default laboratory, but also allow radiology/ultrasound/x-ray requests
-    if (category) {
-      whereClause.category = category;
-    } else {
-      whereClause.category = {
-        [Op.in]: [
-          SERVICE_CATEGORIES.LABORATORY,
-          SERVICE_CATEGORIES.ULTRASOUND,
-          SERVICE_CATEGORIES.X_RAY,
-          SERVICE_CATEGORIES.PROCEDURE
-        ]
-      };
-    }
+    // Laboratory requests only
+    whereClause.category = category || SERVICE_CATEGORIES.LABORATORY;
 
     if (status) {
       whereClause.status = status;

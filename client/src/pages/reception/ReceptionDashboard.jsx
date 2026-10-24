@@ -11,7 +11,6 @@ import {
   UserPlus, 
   CheckCircle2, 
   ArrowRight, 
-  Search,
   Activity,
   AlertCircle
 } from 'lucide-react';
@@ -54,20 +53,20 @@ export const ReceptionDashboard = () => {
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Reception Dashboard</h1>
           <p className="text-sm text-slate-500 mt-1">
-            Patient registration, card numbers, fee recording, and department routing.
+            Patient registration, card numbers, fee recording (ETB), and doctor queue dispatch.
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Link
             to="/reception/register"
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-xl shadow-md shadow-brand-600/20 transition-all"
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-xl shadow-md shadow-brand-600/20 transition-all cursor-pointer"
           >
             <UserPlus className="w-4 h-4" />
             <span>Register New Patient</span>
           </Link>
           <Link
             to="/reception/payments"
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-sm font-semibold rounded-xl transition-all"
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-sm font-semibold rounded-xl transition-all cursor-pointer"
           >
             <CreditCard className="w-4 h-4 text-amber-600" />
             <span>Approve Payments ({stats?.pending_payments_count || 0})</span>
@@ -119,15 +118,15 @@ export const ReceptionDashboard = () => {
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-3xl font-extrabold text-amber-600">{stats?.pending_payments_count || 0}</span>
-            <span className="text-xs text-slate-400 ml-2">(${parseFloat(stats?.pending_payments_amount || 0).toFixed(2)})</span>
+            <span className="text-2xl font-extrabold text-amber-600">{stats?.pending_payments_count || 0}</span>
+            <span className="text-xs text-slate-400 ml-2">({parseFloat(stats?.pending_payments_amount || 0).toFixed(2)} ETB)</span>
           </div>
           <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
             <AlertCircle className="w-3.5 h-3.5" /> Requires receptionist verification
           </p>
         </div>
 
-        {/* Today's Revenue Collected */}
+        {/* Today's Revenue Collected in ETB */}
         <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Revenue Today</span>
@@ -136,8 +135,8 @@ export const ReceptionDashboard = () => {
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-3xl font-extrabold text-emerald-600">
-              ${parseFloat(stats?.today_revenue || 0).toFixed(2)}
+            <span className="text-2xl font-extrabold text-emerald-600">
+              {parseFloat(stats?.today_revenue || 0).toFixed(2)} <span className="text-sm font-bold text-slate-500">ETB</span>
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-2 flex items-center gap-1">
@@ -154,7 +153,7 @@ export const ReceptionDashboard = () => {
           <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
             <div>
               <h2 className="text-base font-bold text-slate-900">Today's Patient Visits</h2>
-              <p className="text-xs text-slate-500">Live patient flow and stage progression</p>
+              <p className="text-xs text-slate-500">Live patient flow and clinical progression</p>
             </div>
             <Link to="/reception/patients" className="text-xs font-semibold text-brand-600 hover:text-brand-700 flex items-center gap-1">
               <span>View All Patients</span>
@@ -166,11 +165,11 @@ export const ReceptionDashboard = () => {
             <table className="w-full text-left text-sm text-slate-600">
               <thead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-100">
                 <tr>
-                  <th className="px-6 py-3">Card #</th>
-                  <th className="px-6 py-3">Patient Name</th>
-                  <th className="px-6 py-3">Phone</th>
-                  <th className="px-6 py-3">Status</th>
-                  <th className="px-6 py-3 text-right">Actions</th>
+                  <th className="px-6 py-3.5">Card #</th>
+                  <th className="px-6 py-3.5">Patient Name</th>
+                  <th className="px-6 py-3.5">Phone</th>
+                  <th className="px-6 py-3.5">Status</th>
+                  <th className="px-6 py-3.5 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -190,7 +189,7 @@ export const ReceptionDashboard = () => {
                         <div className="font-semibold text-slate-900">{visit.patient?.full_name}</div>
                         <div className="text-xs text-slate-400 capitalize">{visit.patient?.sex}, {visit.patient?.age} yrs</div>
                       </td>
-                      <td className="px-6 py-3.5 text-xs text-slate-600">
+                      <td className="px-6 py-3.5 text-xs text-slate-600 font-mono">
                         {visit.patient?.phone}
                       </td>
                       <td className="px-6 py-3.5">
@@ -236,7 +235,7 @@ export const ReceptionDashboard = () => {
                 <div key={payment.id} className="p-3.5 rounded-xl border border-amber-200/80 bg-amber-50/40 space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="font-mono text-xs font-bold text-slate-700">{payment.receipt_number}</span>
-                    <span className="text-sm font-bold text-amber-700">${parseFloat(payment.total_amount).toFixed(2)}</span>
+                    <span className="text-sm font-bold text-amber-700">{parseFloat(payment.total_amount).toFixed(2)} ETB</span>
                   </div>
                   <div className="text-xs font-medium text-slate-900">
                     {payment.patient?.full_name} ({payment.patient?.card_number})

@@ -165,8 +165,8 @@ export const DoctorDashboard = () => {
                   {visit.procedure_requests?.map(pr => pr.category).join(', ')} tests ready
                 </div>
                 <Link
-                  to={`/doctor/consultation/${visit.id}`}
-                  className="mt-2 block w-full text-center py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-lg transition-colors"
+                  to={`/doctor/consultation/${visit.id}?tab=results`}
+                  className="mt-2 block w-full text-center py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-lg transition-colors shadow-xs"
                 >
                   Review Results & Prescribe &rarr;
                 </Link>

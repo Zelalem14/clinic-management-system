@@ -94,8 +94,8 @@ export const AdminDashboard = () => {
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-3xl font-extrabold text-emerald-600">
-              ${parseFloat(admin.today_revenue || 0).toFixed(2)}
+            <span className="text-2xl font-extrabold text-emerald-600">
+              {parseFloat(admin.today_revenue || 0).toFixed(2)} <span className="text-sm font-bold text-slate-500">ETB</span>
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-2 flex items-center gap-1">
@@ -112,8 +112,8 @@ export const AdminDashboard = () => {
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-3xl font-extrabold text-blue-700">
-              ${parseFloat(admin.month_revenue || 0).toFixed(2)}
+            <span className="text-2xl font-extrabold text-blue-700">
+              {parseFloat(admin.month_revenue || 0).toFixed(2)} <span className="text-sm font-bold text-slate-500">ETB</span>
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-2">Current billing month</p>
@@ -128,8 +128,8 @@ export const AdminDashboard = () => {
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-3xl font-extrabold text-amber-600">
-              ${parseFloat(admin.outstanding_pending_amount || 0).toFixed(2)}
+            <span className="text-2xl font-extrabold text-amber-600">
+              {parseFloat(admin.outstanding_pending_amount || 0).toFixed(2)} <span className="text-sm font-bold text-slate-500">ETB</span>
             </span>
           </div>
           <p className="text-xs text-amber-600 font-medium mt-2">Awaiting reception confirmation</p>
@@ -179,7 +179,7 @@ export const AdminDashboard = () => {
                     </div>
                   </div>
                   <div className="text-sm font-extrabold text-slate-900 font-mono">
-                    ${parseFloat(item.total || 0).toFixed(2)}
+                    {parseFloat(item.total || 0).toFixed(2)} ETB
                   </div>
                 </div>
               ))
@@ -210,7 +210,7 @@ export const AdminDashboard = () => {
                     </div>
                   </div>
                   <div className="text-sm font-extrabold text-purple-900 font-mono">
-                    ${parseFloat(item.total || 0).toFixed(2)}
+                    {parseFloat(item.total || 0).toFixed(2)} ETB
                   </div>
                 </div>
               ))

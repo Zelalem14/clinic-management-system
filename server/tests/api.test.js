@@ -222,7 +222,7 @@ describe('Clinic Management System API Test Suite', () => {
 
       expect(res.status).toBe(201);
       expect(res.body.procedure_request.status).toBe('awaiting_payment');
-      expect(res.body.payment_required).toBe(55.00); // 20 + 35
+      expect(res.body.payment_required).toBe(900.00); // 350 + 550 ETB
 
       procedureRequestId = res.body.procedure_request.id;
     });
@@ -252,9 +252,9 @@ describe('Clinic Management System API Test Suite', () => {
         .post(`/api/payments/${procPayment.id}/approve`)
         .set('Authorization', `Bearer ${receptionistToken}`)
         .send({
-          payment_method: 'card',
-          amount_paid: 55.00,
-          transaction_reference: 'POS-AUTH-8821'
+          payment_method: 'telebirr',
+          amount_paid: 900.00,
+          transaction_reference: 'TB-AUTH-8821'
         });
 
       expect(approveRes.status).toBe(200);
@@ -306,6 +306,60 @@ describe('Clinic Management System API Test Suite', () => {
 
       expect(res.status).toBe(200);
       expect(res.body.logs.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('5. Admin User Management (Add and Delete Staff Accounts)', () => {
+    let newDoctorId;
+
+    it('should allow Admin to create a new doctor account', async () => {
+      const res = await request(app)
+        .post('/api/users')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          name: 'Dr. Bethlehem Tadesse',
+          email: 'bethlehem@clinic.com',
+          password: 'Doctor@123',
+          role: 'doctor',
+          phone: '+251 91 199 8877'
+        });
+
+      expect(res.status).toBe(201);
+      expect(res.body.user).toBeDefined();
+      expect(res.body.user.name).toBe('Dr. Bethlehem Tadesse');
+      expect(res.body.user.role).toBe('doctor');
+      newDoctorId = res.body.user.id;
+    });
+
+    it('should prevent deleting oneself (currently authenticated admin)', async () => {
+      // Decode or check admin
+      const meRes = await request(app)
+        .get('/api/auth/me')
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      const res = await request(app)
+        .delete(`/api/users/${meRes.body.user.id}`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(res.status).toBe(400);
+      expect(res.body.message).toContain('cannot delete your own');
+    });
+
+    it('should allow Admin to delete a doctor or lab technician account', async () => {
+      const res = await request(app)
+        .delete(`/api/users/${newDoctorId}`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.message).toContain('successfully deleted');
+
+      // Verify user is gone
+      const checkRes = await request(app)
+        .get('/api/users')
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      const found = checkRes.body.users.find(u => u.id === newDoctorId);
+      expect(found).toBeUndefined();
     });
   });
 });

@@ -9,7 +9,6 @@ import {
   AlertCircle, 
   Printer, 
   ArrowRight,
-  ShieldAlert,
   Calendar,
   Phone,
   User,
@@ -19,8 +18,8 @@ import {
 export const PatientRegistration = () => {
   const navigate = useNavigate();
 
-  // Pricing configs retrieved from database
-  const [fees, setFees] = useState({ cardFee: 10.00, consultFee: 25.00 });
+  // Pricing configs retrieved from database in Ethiopian Birr
+  const [fees, setFees] = useState({ cardFee: 150.00, consultFee: 350.00 });
   const [loadingConfig, setLoadingConfig] = useState(true);
 
   // Form Fields
@@ -35,7 +34,7 @@ export const PatientRegistration = () => {
     consultation_type: 'General Consultation',
     payment_method: 'cash',
     transaction_reference: '',
-    approve_payment_now: true, // Default to true if receptionist receives cash upfront
+    approve_payment_now: true,
     allergies: '',
     medical_history: '',
     current_medications: '',
@@ -47,7 +46,6 @@ export const PatientRegistration = () => {
   const [successData, setSuccessData] = useState(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  // Load configured prices from services table
   useEffect(() => {
     const fetchServices = async () => {
       try {
@@ -57,8 +55,8 @@ export const PatientRegistration = () => {
         const consultSrv = services.find(s => s.category === 'consultation');
 
         setFees({
-          cardFee: cardSrv ? parseFloat(cardSrv.price) : 10.00,
-          consultFee: consultSrv ? parseFloat(consultSrv.price) : 25.00
+          cardFee: cardSrv ? parseFloat(cardSrv.price) : 150.00,
+          consultFee: consultSrv ? parseFloat(consultSrv.price) : 350.00
         });
       } catch (err) {
         console.error('Failed to load pricing:', err);
@@ -79,7 +77,6 @@ export const PatientRegistration = () => {
       [name]: type === 'checkbox' ? checked : value
     }));
 
-    // If dob changes, auto-calculate age
     if (name === 'dob' && value) {
       const birthYear = new Date(value).getFullYear();
       const currentYear = new Date().getFullYear();
@@ -123,12 +120,12 @@ export const PatientRegistration = () => {
             <span>New Patient Registration</span>
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Enroll a new patient, auto-generate unique card number, and record registration fees.
+            Enroll a new patient, auto-generate unique card number, and record registration fees in Ethiopian Birr (ETB).
           </p>
         </div>
         <div className="bg-brand-50 border border-brand-200 px-4 py-2 rounded-xl text-center">
           <span className="text-[11px] font-bold uppercase tracking-wider text-brand-600">Registration Package</span>
-          <div className="text-lg font-extrabold text-brand-900">${totalFee.toFixed(2)}</div>
+          <div className="text-lg font-extrabold text-brand-900">{totalFee.toFixed(2)} ETB</div>
         </div>
       </div>
 
@@ -160,7 +157,7 @@ export const PatientRegistration = () => {
                 required
                 value={formData.full_name}
                 onChange={handleChange}
-                placeholder="e.g. Robert Smith"
+                placeholder="e.g. Dawit Tadesse or Almaz Bekele"
                 className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
               />
             </div>
@@ -220,21 +217,21 @@ export const PatientRegistration = () => {
                 required
                 value={formData.phone}
                 onChange={handleChange}
-                placeholder="+1 (555) 000-0000"
+                placeholder="+251 91 000 0000"
                 className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
               />
             </div>
 
             <div className="md:col-span-2">
               <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                Residential Address
+                Residential Address / Sub-City
               </label>
               <input
                 type="text"
                 name="address"
                 value={formData.address}
                 onChange={handleChange}
-                placeholder="Street address, City, District"
+                placeholder="e.g. Bole Sub-City, Woreda 03, Addis Ababa"
                 className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
               />
             </div>
@@ -273,7 +270,7 @@ export const PatientRegistration = () => {
                 onChange={handleChange}
                 className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 bg-white"
               >
-                <option value="General Consultation">General Consultation</option>
+                <option value="General Consultation">General Consultation (Dr. Abebe Kebede)</option>
                 <option value="Pediatric Consultation">Pediatric Consultation</option>
                 <option value="Specialist Physician">Specialist Physician</option>
                 <option value="Antenatal Care (ANC)">Antenatal Care (ANC)</option>
@@ -304,66 +301,94 @@ export const PatientRegistration = () => {
                 rows="2"
                 value={formData.notes}
                 onChange={handleChange}
-                placeholder="Brief reason for visit recorded at reception..."
+                placeholder="Brief reason for visit recorded by Meron Alemu at reception..."
                 className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
               />
             </div>
           </div>
         </div>
 
-        {/* Section 3: Fees & Payment Approval */}
+        {/* Section 3: Fees & Payment Approval in ETB */}
         <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
           <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2 flex items-center gap-2">
             <CreditCard className="w-4 h-4 text-brand-600" />
-            <span>3. Fee Breakdown & Payment Approval</span>
+            <span>3. Fee Breakdown & Payment Approval (Ethiopian Birr - ETB)</span>
           </h2>
 
           {/* Pricing Summary Table */}
           <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2 text-sm">
             <div className="flex justify-between text-slate-600">
               <span>Patient Digital File & Card Registration Fee:</span>
-              <span className="font-semibold text-slate-900">${fees.cardFee.toFixed(2)}</span>
+              <span className="font-semibold text-slate-900">{fees.cardFee.toFixed(2)} ETB</span>
             </div>
             <div className="flex justify-between text-slate-600">
               <span>Doctor Consultation Fee ({formData.consultation_type}):</span>
-              <span className="font-semibold text-slate-900">${fees.consultFee.toFixed(2)}</span>
+              <span className="font-semibold text-slate-900">{fees.consultFee.toFixed(2)} ETB</span>
             </div>
             <div className="pt-2 border-t border-slate-200 flex justify-between text-base font-bold text-slate-900">
               <span>Total Registration Amount Due:</span>
-              <span className="text-brand-700">${totalFee.toFixed(2)}</span>
+              <span className="text-brand-700">{totalFee.toFixed(2)} ETB</span>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+          <div className="space-y-3 pt-2">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                Payment Method
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                Paid By: <span className="text-rose-500">*</span>
               </label>
-              <select
-                name="payment_method"
-                value={formData.payment_method}
-                onChange={handleChange}
-                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 bg-white"
-              >
-                <option value="cash">Cash (Direct Counter)</option>
-                <option value="bank_transfer">Bank Transfer</option>
-                <option value="card">Debit / Credit Card (POS)</option>
-                <option value="mobile_money">Mobile Money</option>
-                <option value="insurance">Insurance Scheme</option>
-              </select>
+              <div className="grid grid-cols-3 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, payment_method: 'cash' }))}
+                  className={`p-3 rounded-xl border text-center transition-all cursor-pointer font-bold text-xs ${
+                    formData.payment_method === 'cash'
+                      ? 'bg-emerald-50 border-emerald-500 text-emerald-800 shadow-sm ring-2 ring-emerald-500/20'
+                      : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300'
+                  }`}
+                >
+                  <div className="text-xl mb-1">💵</div>
+                  <div>Cash</div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, payment_method: 'telebirr' }))}
+                  className={`p-3 rounded-xl border text-center transition-all cursor-pointer font-bold text-xs ${
+                    formData.payment_method === 'telebirr'
+                      ? 'bg-sky-50 border-sky-500 text-sky-800 shadow-sm ring-2 ring-sky-500/20'
+                      : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300'
+                  }`}
+                >
+                  <div className="text-xl mb-1">📱</div>
+                  <div>Telebirr</div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, payment_method: 'bank_transfer' }))}
+                  className={`p-3 rounded-xl border text-center transition-all cursor-pointer font-bold text-xs ${
+                    formData.payment_method === 'bank_transfer'
+                      ? 'bg-purple-50 border-purple-500 text-purple-800 shadow-sm ring-2 ring-purple-500/20'
+                      : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300'
+                  }`}
+                >
+                  <div className="text-xl mb-1">🏦</div>
+                  <div>Bank (CBE)</div>
+                </button>
+              </div>
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                Transaction Reference / Slip #
+                Writing / Note (e.g. Telebirr code, CBE slip number, or cash handed at counter)
               </label>
               <input
                 type="text"
                 name="transaction_reference"
                 value={formData.transaction_reference}
                 onChange={handleChange}
-                placeholder="Optional receipt / transfer ref"
-                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                placeholder="Optional payment reference or note..."
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none"
               />
             </div>
           </div>
@@ -380,8 +405,8 @@ export const PatientRegistration = () => {
             />
             <label htmlFor="approve_payment_now" className="text-xs text-slate-700 leading-relaxed cursor-pointer">
               <span className="font-bold text-slate-900 block">Confirm Receipt & Approve Payment Immediately</span>
-              Check this box only if the ${totalFee.toFixed(2)} fee has been physically received or bank-verified. 
-              Once approved, the patient will immediately enter the Doctor's Waiting Queue.
+              Check this box only if the {totalFee.toFixed(2)} ETB fee has been physically received or bank-verified. 
+              Once approved, the patient will immediately appear in Dr. Abebe Kebede's Waiting Queue.
             </label>
           </div>
         </div>
@@ -423,7 +448,7 @@ export const PatientRegistration = () => {
               <CheckCircle2 className="w-12 h-12 text-emerald-600 mx-auto mb-2" />
               <h3 className="text-lg font-bold text-emerald-950">Registration Complete</h3>
               <p className="text-xs text-emerald-800 mt-1">
-                Patient has been recorded in the database.
+                Patient recorded at Tena Specialty Clinic, Addis Ababa.
               </p>
               
               <div className="mt-4 inline-block bg-white px-6 py-3 rounded-xl border-2 border-brand-500 shadow-sm">
@@ -449,6 +474,10 @@ export const PatientRegistration = () => {
                 <span className="font-mono font-semibold text-slate-900">{successData.payment.receipt_number}</span>
               </div>
               <div className="flex justify-between">
+                <span className="text-slate-500">Amount Paid:</span>
+                <span className="font-bold text-brand-700">{parseFloat(successData.payment.total_amount).toFixed(2)} ETB</span>
+              </div>
+              <div className="flex justify-between">
                 <span className="text-slate-500">Payment Status:</span>
                 <span className={`font-bold capitalize ${successData.payment.status === 'approved' ? 'text-emerald-700' : 'text-amber-700'}`}>
                   {successData.payment.status}
@@ -466,7 +495,7 @@ export const PatientRegistration = () => {
               <button
                 type="button"
                 onClick={handlePrint}
-                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
               >
                 <Printer className="w-4 h-4" />
                 <span>Print Card & Receipt</span>

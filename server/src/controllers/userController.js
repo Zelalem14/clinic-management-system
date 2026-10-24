@@ -1,5 +1,16 @@
 const bcrypt = require('bcryptjs');
-const { User } = require('../models');
+const { 
+  User, 
+  PatientVisit, 
+  Consultation, 
+  ProcedureRequest, 
+  LaboratoryResult, 
+  Prescription, 
+  Appointment, 
+  AuditLog, 
+  Payment,
+  sequelize 
+} = require('../models');
 const { ROLES } = require('../config/constants');
 const { logAudit } = require('../middleware/auditLogger');
 
@@ -67,13 +78,13 @@ const createUser = async (req, res, next) => {
       action: 'USER_CREATED',
       entity: 'User',
       entityId: user.id,
-      details: { email: user.email, role: user.role },
+      details: { email: user.email, role: user.role, name: user.name },
       ipAddress: req.ip
     });
 
     res.status(201).json({
       success: true,
-      message: 'User account created successfully',
+      message: `${role.replace('_', ' ').toUpperCase()} account created successfully.`,
       user: {
         id: user.id,
         name: user.name,
@@ -105,8 +116,7 @@ const updateUser = async (req, res, next) => {
     if (is_active !== undefined) user.is_active = Boolean(is_active);
 
     if (password && password.trim().length >= 6) {
-      const salt = await bcrypt.genSalt(10);
-      user.password = await bcrypt.hash(password.trim(), salt);
+      user.password = password.trim();
     }
 
     await user.save();
@@ -116,13 +126,13 @@ const updateUser = async (req, res, next) => {
       action: 'USER_UPDATED',
       entity: 'User',
       entityId: user.id,
-      details: { role: user.role, is_active: user.is_active },
+      details: { role: user.role, is_active: user.is_active, name: user.name },
       ipAddress: req.ip
     });
 
     res.json({
       success: true,
-      message: 'User updated successfully',
+      message: 'User account updated successfully',
       user: {
         id: user.id,
         name: user.name,
@@ -137,8 +147,66 @@ const updateUser = async (req, res, next) => {
   }
 };
 
+const deleteUser = async (req, res, next) => {
+  const t = await sequelize.transaction();
+  try {
+    const { id } = req.params;
+
+    if (parseInt(id, 10) === parseInt(req.user.id, 10)) {
+      await t.rollback();
+      return res.status(400).json({
+        success: false,
+        message: 'You cannot delete your own active administrator account.'
+      });
+    }
+
+    const user = await User.findByPk(id, { transaction: t });
+    if (!user) {
+      await t.rollback();
+      return res.status(404).json({ success: false, message: 'User account not found.' });
+    }
+
+    const userName = user.name;
+    const userRole = user.role;
+    const userEmail = user.email;
+
+    // Dissociate or nullify references to preserve clinical records integrity
+    await PatientVisit.update({ doctor_id: null }, { where: { doctor_id: id }, transaction: t });
+    await Consultation.update({ doctor_id: req.user.id }, { where: { doctor_id: id }, transaction: t });
+    await ProcedureRequest.update({ doctor_id: req.user.id }, { where: { doctor_id: id }, transaction: t });
+    await LaboratoryResult.update({ technician_id: req.user.id }, { where: { technician_id: id }, transaction: t });
+    await Prescription.update({ doctor_id: req.user.id }, { where: { doctor_id: id }, transaction: t });
+    await Appointment.update({ doctor_id: null }, { where: { doctor_id: id }, transaction: t });
+    await Payment.update({ approved_by: null }, { where: { approved_by: id }, transaction: t });
+    await AuditLog.update({ user_id: null }, { where: { user_id: id }, transaction: t });
+
+    // Destroy the user record
+    await user.destroy({ transaction: t });
+
+    await t.commit();
+
+    await logAudit({
+      userId: req.user.id,
+      action: 'USER_DELETED',
+      entity: 'User',
+      entityId: id,
+      details: { deleted_name: userName, deleted_role: userRole, deleted_email: userEmail },
+      ipAddress: req.ip
+    });
+
+    res.json({
+      success: true,
+      message: `${userRole.replace('_', ' ').toUpperCase()} "${userName}" was successfully deleted.`
+    });
+  } catch (error) {
+    await t.rollback();
+    next(error);
+  }
+};
+
 module.exports = {
   listUsers,
   createUser,
-  updateUser
+  updateUser,
+  deleteUser
 };

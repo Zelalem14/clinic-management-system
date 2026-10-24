@@ -36,6 +36,8 @@ const PAYMENT_METHODS = {
   BANK_TRANSFER: 'bank_transfer',
   CARD: 'card',
   MOBILE_MONEY: 'mobile_money',
+  TELEBIRR: 'telebirr',
+  CBE_BIRR: 'cbe_birr',
   INSURANCE: 'insurance',
   OTHER: 'other'
 };

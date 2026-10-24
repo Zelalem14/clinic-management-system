@@ -9,27 +9,27 @@ const ClinicSetting = sequelize.define('ClinicSetting', {
   },
   clinic_name: {
     type: DataTypes.STRING,
-    defaultValue: 'St. Jude Community Clinic'
+    defaultValue: 'Tena Community Specialty Clinic & Diagnostic Center'
   },
   address: {
     type: DataTypes.TEXT,
-    defaultValue: '124 Healthcare Boulevard, City Center'
+    defaultValue: 'Bole Sub-City, Africa Avenue, Addis Ababa, Ethiopia'
   },
   phone: {
     type: DataTypes.STRING,
-    defaultValue: '+1 (555) 019-2834'
+    defaultValue: '+251 11 661 2345'
   },
   email: {
     type: DataTypes.STRING,
-    defaultValue: 'info@stjudeclinic.org'
+    defaultValue: 'info@tenaclinic.et'
   },
   currency_symbol: {
     type: DataTypes.STRING,
-    defaultValue: '$'
+    defaultValue: 'ETB'
   },
   receipt_footer: {
     type: DataTypes.TEXT,
-    defaultValue: 'Thank you for visiting St. Jude Clinic. Wishing you a quick and complete recovery!'
+    defaultValue: 'እናመሰግናለን! Thank you for choosing Tena Specialty Clinic. Wishing you swift recovery!'
   }
 }, {
   tableName: 'clinic_settings'

@@ -145,8 +145,8 @@ const createPatient = async (req, res, next) => {
       transaction: t
     });
 
-    const cardFee = cardService ? parseFloat(cardService.price) : 10.00;
-    const consultFee = consultService ? parseFloat(consultService.price) : 25.00;
+    const cardFee = cardService ? parseFloat(cardService.price) : 150.00;
+    const consultFee = consultService ? parseFloat(consultService.price) : 350.00;
     const totalRegistrationFee = cardFee + consultFee;
 
     // Determine initial visit status: if approved now -> 'waiting_consultation', else -> 'registered'

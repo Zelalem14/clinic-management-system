@@ -245,7 +245,7 @@ export const PatientList = () => {
               </div>
               <div className="flex justify-between">
                 <span>Consultation Fee:</span>
-                <span className="font-bold text-slate-900">$25.00</span>
+                <span className="font-bold text-slate-900">350.00 ETB</span>
               </div>
             </div>
 
@@ -303,8 +303,8 @@ export const PatientList = () => {
                 className="mt-0.5 h-4 w-4 rounded text-brand-600 border-slate-300"
               />
               <label htmlFor="approve_visit_now" className="text-xs text-slate-700 cursor-pointer">
-                <span className="font-bold text-slate-900 block">Approve $25.00 Consultation Fee Immediately</span>
-                Check to send patient directly to Doctor Waiting Queue.
+                <span className="font-bold text-slate-900 block">Approve 350.00 ETB Consultation Fee Immediately</span>
+                Check to send patient directly to Dr. Abebe Kebede's Waiting Queue.
               </label>
             </div>
 

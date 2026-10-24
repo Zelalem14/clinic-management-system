@@ -159,13 +159,10 @@ export const ServiceManagement = () => {
           onChange={(e) => setCategoryFilter(e.target.value)}
           className="bg-white rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-700 focus:border-brand-500 focus:outline-none"
         >
-          <option value="">All Categories</option>
+          <option value="">All Services</option>
           <option value="card_registration">Patient Card & Registration</option>
           <option value="consultation">Doctor Consultations</option>
           <option value="laboratory">Laboratory Tests</option>
-          <option value="ultrasound">Ultrasound Scans</option>
-          <option value="x_ray">Digital X-Ray</option>
-          <option value="procedure">Minor Clinical Procedures</option>
         </select>
       </div>
 
@@ -209,7 +206,7 @@ export const ServiceManagement = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 font-mono font-extrabold text-slate-900 text-sm">
-                        ${parseFloat(s.price).toFixed(2)}
+                        {parseFloat(s.price).toFixed(2)} ETB
                       </td>
                       <td className="px-6 py-4">
                         <button
@@ -287,10 +284,6 @@ export const ServiceManagement = () => {
                   <option value="card_registration">Card & Registration</option>
                   <option value="consultation">Doctor Consultation</option>
                   <option value="laboratory">Laboratory Test</option>
-                  <option value="ultrasound">Ultrasound Sonography</option>
-                  <option value="x_ray">Digital X-Ray</option>
-                  <option value="procedure">Minor Clinical Procedure</option>
-                  <option value="other">Other Service</option>
                 </select>
               </div>
             </div>
@@ -311,7 +304,7 @@ export const ServiceManagement = () => {
 
             <div>
               <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
-                Standard Fee ($)
+                Standard Fee (Ethiopian Birr - ETB)
               </label>
               <input
                 type="number"
@@ -320,7 +313,7 @@ export const ServiceManagement = () => {
                 required
                 value={formData.price}
                 onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                placeholder="e.g. 25.00"
+                placeholder="e.g. 350.00"
                 className="w-full rounded-xl border border-slate-300 p-2 text-xs font-bold font-mono text-brand-700"
               />
             </div>

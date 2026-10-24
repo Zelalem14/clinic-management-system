@@ -155,11 +155,15 @@ export const DoctorQueue = () => {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <Link
-                          to={`/doctor/consultation/${v.id}`}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors"
+                          to={`/doctor/consultation/${v.id}${v.status === 'results_ready' ? '?tab=results' : ''}`}
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold shadow-xs transition-colors ${
+                            v.status === 'results_ready'
+                              ? 'bg-purple-600 hover:bg-purple-700 text-white'
+                              : 'bg-brand-600 hover:bg-brand-700 text-white'
+                          }`}
                         >
                           <Stethoscope className="w-3.5 h-3.5" />
-                          <span>{v.status === 'in_consultation' ? 'Resume Exam' : 'Consult Now'}</span>
+                          <span>{v.status === 'results_ready' ? 'Review Lab Results' : v.status === 'in_consultation' ? 'Resume Exam' : 'Consult Now'}</span>
                         </Link>
                       </td>
                     </tr>
