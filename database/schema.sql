@@ -154,6 +154,7 @@ CREATE TABLE IF NOT EXISTS `procedure_requests` (
   `visit_id` INT NOT NULL,
   `patient_id` INT NOT NULL,
   `doctor_id` INT NOT NULL,
+  `technician_id` INT NULL,
   `category` ENUM('card_registration', 'consultation', 'laboratory', 'ultrasound', 'x_ray', 'procedure', 'other') DEFAULT 'laboratory',
   `clinical_reason` TEXT NULL,
   `priority` ENUM('routine', 'urgent') DEFAULT 'routine',
@@ -166,6 +167,7 @@ CREATE TABLE IF NOT EXISTS `procedure_requests` (
   FOREIGN KEY (`visit_id`) REFERENCES `patient_visits`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`patient_id`) REFERENCES `patients`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`doctor_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`technician_id`) REFERENCES `users`(`id`) ON DELETE SET NULL,
   INDEX `idx_proc_req_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

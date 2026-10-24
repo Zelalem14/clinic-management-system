@@ -24,10 +24,12 @@ export const PaymentManagement = () => {
   // Approve Modal State
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [showApproveModal, setShowApproveModal] = useState(false);
+  const [labTechs, setLabTechs] = useState([]);
   const [approveForm, setApproveForm] = useState({
     payment_method: 'cash',
     amount_paid: '',
     transaction_reference: '',
+    technician_id: '',
     notes: ''
   });
   const [isApproving, setIsApproving] = useState(false);
@@ -54,6 +56,15 @@ export const PaymentManagement = () => {
 
   useEffect(() => {
     fetchPayments();
+    const fetchTechs = async () => {
+      try {
+        const res = await api.get('/users?role=lab_tech&is_active=true');
+        setLabTechs(res.data.users || []);
+      } catch (err) {
+        console.error('Failed to load lab technicians:', err);
+      }
+    };
+    fetchTechs();
   }, [statusFilter]);
 
   const handleSearchSubmit = (e) => {
@@ -62,11 +73,15 @@ export const PaymentManagement = () => {
   };
 
   const handleOpenApproveModal = (payment) => {
+    const isLab = payment.notes?.toLowerCase().includes('laboratory') || 
+      payment.allocations?.some(a => a.allocation_type?.includes('laboratory') || a.procedure_request_id);
+
     setSelectedPayment(payment);
     setApproveForm({
       payment_method: payment.payment_method || 'cash',
       amount_paid: payment.total_amount,
       transaction_reference: payment.transaction_reference || '',
+      technician_id: isLab && labTechs.length > 0 ? String(labTechs[0].id) : '',
       notes: ''
     });
     setApprovalError('');
@@ -391,14 +406,36 @@ export const PaymentManagement = () => {
             </div>
 
             {selectedPayment.notes?.toLowerCase().includes('laboratory') || selectedPayment.allocations?.some(a => a.allocation_type?.includes('laboratory') || a.procedure_request_id) ? (
-              <div className="p-3.5 rounded-xl bg-purple-50 border border-purple-200 text-xs text-purple-900 space-y-1">
+              <div className="p-3.5 rounded-xl bg-purple-50 border border-purple-200 text-xs text-purple-900 space-y-3">
                 <div className="flex items-center gap-1.5 font-bold text-purple-950">
                   <TestTubes className="w-4 h-4 text-purple-600" />
-                  <span>Laboratory Test Payment Approval:</span>
+                  <span>Assign to Laboratory Technician:</span>
                 </div>
-                <p>
-                  Lab Technician <strong>Assefa Zegeye</strong> CANNOT run this test until you approve this payment.
-                  Approving immediately unlocks this test in the Laboratory Workspace.
+
+                <div>
+                  <label className="block text-xs font-semibold text-purple-950 mb-1">
+                    Select Laboratory Technician <span className="text-rose-500">*</span>
+                  </label>
+                  <select
+                    value={approveForm.technician_id}
+                    onChange={(e) => setApproveForm({ ...approveForm, technician_id: e.target.value })}
+                    required
+                    className="w-full rounded-xl border border-purple-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-purple-500 focus:outline-none"
+                  >
+                    {labTechs.length === 0 ? (
+                      <option value="">No laboratory technicians available</option>
+                    ) : (
+                      labTechs.map((tech) => (
+                        <option key={tech.id} value={tech.id}>
+                          {tech.name} (Laboratory Technician)
+                        </option>
+                      ))
+                    )}
+                  </select>
+                </div>
+
+                <p className="text-[11px] text-purple-800">
+                  Approving unlocks this test and routes it exclusively to the selected technician's dashboard.
                 </p>
               </div>
             ) : (
@@ -408,7 +445,7 @@ export const PaymentManagement = () => {
                   <span>Consultation Fee Approval:</span>
                 </div>
                 <p>
-                  Approving sends the patient directly to <strong>Dr. Abebe Kebede's Waiting Queue</strong>.
+                  Approving sends the patient directly to the assigned <strong>Doctor's Waiting Queue</strong>.
                 </p>
               </div>
             )}

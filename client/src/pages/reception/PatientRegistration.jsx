@@ -21,6 +21,7 @@ export const PatientRegistration = () => {
   // Pricing configs retrieved from database in Ethiopian Birr
   const [fees, setFees] = useState({ cardFee: 150.00, consultFee: 350.00 });
   const [loadingConfig, setLoadingConfig] = useState(true);
+  const [doctors, setDoctors] = useState([]);
 
   // Form Fields
   const [formData, setFormData] = useState({
@@ -31,6 +32,7 @@ export const PatientRegistration = () => {
     phone: '',
     address: '',
     emergency_contact: '',
+    doctor_id: '',
     consultation_type: 'General Consultation',
     payment_method: 'cash',
     transaction_reference: '',
@@ -47,10 +49,14 @@ export const PatientRegistration = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   useEffect(() => {
-    const fetchServices = async () => {
+    const fetchData = async () => {
       try {
-        const res = await api.get('/services?active_only=true');
-        const services = res.data.services || [];
+        const [servicesRes, doctorsRes] = await Promise.all([
+          api.get('/services?active_only=true'),
+          api.get('/users?role=doctor&is_active=true')
+        ]);
+
+        const services = servicesRes.data.services || [];
         const cardSrv = services.find(s => s.category === 'card_registration');
         const consultSrv = services.find(s => s.category === 'consultation');
 
@@ -58,14 +64,24 @@ export const PatientRegistration = () => {
           cardFee: cardSrv ? parseFloat(cardSrv.price) : 150.00,
           consultFee: consultSrv ? parseFloat(consultSrv.price) : 350.00
         });
+
+        const activeDoctors = doctorsRes.data.users || [];
+        setDoctors(activeDoctors);
+        if (activeDoctors.length > 0) {
+          setFormData(prev => ({
+            ...prev,
+            doctor_id: prev.doctor_id || activeDoctors[0].id,
+            consultation_type: prev.consultation_type || activeDoctors[0].name
+          }));
+        }
       } catch (err) {
-        console.error('Failed to load pricing:', err);
+        console.error('Failed to load pricing or doctors:', err);
       } finally {
         setLoadingConfig(false);
       }
     };
 
-    fetchServices();
+    fetchData();
   }, []);
 
   const totalFee = fees.cardFee + fees.consultFee;
@@ -261,20 +277,36 @@ export const PatientRegistration = () => {
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
-              Consultation Type
+              Consultation Type / Assigned Doctor <span className="text-rose-500">*</span>
             </label>
             <select
-              name="consultation_type"
-              value={formData.consultation_type}
-              onChange={handleChange}
+              name="doctor_id"
+              value={formData.doctor_id}
+              onChange={(e) => {
+                const docId = e.target.value;
+                const doc = doctors.find(d => String(d.id) === String(docId));
+                setFormData(prev => ({
+                  ...prev,
+                  doctor_id: docId,
+                  consultation_type: doc ? doc.name : 'General Consultation'
+                }));
+              }}
+              required
               className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 bg-white"
             >
-              <option value="General Consultation">General Consultation (Dr. Abebe Kebede)</option>
-              <option value="Pediatric Consultation">Pediatric Consultation</option>
-              <option value="Specialist Physician">Specialist Physician</option>
-              <option value="Antenatal Care (ANC)">Antenatal Care (ANC)</option>
-              <option value="Follow-up Review">Follow-up Review</option>
+              {doctors.length === 0 ? (
+                <option value="">No doctors available</option>
+              ) : (
+                doctors.map((doc) => (
+                  <option key={doc.id} value={doc.id}>
+                    {doc.name} (Doctor Consultation)
+                  </option>
+                ))
+              )}
             </select>
+            <p className="text-[11px] text-slate-500 mt-1">
+              Selecting the doctor automatically assigns the patient to their consultation queue upon payment approval.
+            </p>
           </div>
         </div>
 

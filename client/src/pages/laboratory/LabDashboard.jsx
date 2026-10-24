@@ -311,6 +311,12 @@ export const LabDashboard = () => {
                         <td className="px-6 py-4 text-xs text-slate-600 max-w-xs">
                           <p className="line-clamp-2">{r.clinical_reason || 'Doctor routine workup'}</p>
                           <div className="text-[10px] text-slate-400 mt-1">Doctor: {r.doctor?.name}</div>
+                          <div className="text-[11px] font-semibold text-purple-700 mt-1 flex items-center gap-1">
+                            <span>🔬 Assigned:</span>
+                            <span className="bg-purple-50 text-purple-900 px-1.5 py-0.5 rounded border border-purple-200">
+                              {r.technician?.name || 'Unassigned'}
+                            </span>
+                          </div>
                         </td>
 
                         <td className="px-6 py-4">

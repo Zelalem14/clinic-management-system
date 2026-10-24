@@ -20,6 +20,10 @@ const ProcedureRequest = sequelize.define('ProcedureRequest', {
     type: DataTypes.INTEGER,
     allowNull: false
   },
+  technician_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true
+  },
   category: {
     type: DataTypes.ENUM(Object.values(SERVICE_CATEGORIES)),
     defaultValue: SERVICE_CATEGORIES.LABORATORY

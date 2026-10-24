@@ -7,8 +7,8 @@ const { ROLES } = require('../config/constants');
 
 router.use(authenticate);
 
-// User administration (Admin only)
-router.get('/', authorize([ROLES.ADMIN]), userController.listUsers);
+// User listing allowed for Admin and staff dropdowns (Receptionist, Doctor, Lab Tech)
+router.get('/', authorize([ROLES.ADMIN, ROLES.RECEPTIONIST, ROLES.DOCTOR, ROLES.LAB_TECH]), userController.listUsers);
 router.post('/', authorize([ROLES.ADMIN]), userController.createUser);
 router.put('/:id', authorize([ROLES.ADMIN]), userController.updateUser);
 router.delete('/:id', authorize([ROLES.ADMIN]), userController.deleteUser);

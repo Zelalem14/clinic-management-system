@@ -66,6 +66,7 @@ const createPatient = async (req, res, next) => {
       phone,
       address,
       emergency_contact,
+      doctor_id,
       consultation_type = 'General Consultation',
       notes,
       payment_method = 'cash',
@@ -149,6 +150,17 @@ const createPatient = async (req, res, next) => {
     const consultFee = consultService ? parseFloat(consultService.price) : 350.00;
     const totalRegistrationFee = cardFee + consultFee;
 
+    // Resolve assigned Doctor ID
+    let assignedDoctorId = doctor_id ? parseInt(doctor_id, 10) : null;
+    if (!assignedDoctorId) {
+      const defaultDoctor = await User.findOne({
+        where: { role: ROLES.DOCTOR, is_active: true },
+        order: [['id', 'ASC']],
+        transaction: t
+      });
+      if (defaultDoctor) assignedDoctorId = defaultDoctor.id;
+    }
+
     // Determine initial visit status: if approved now -> 'waiting_consultation', else -> 'registered'
     const initialVisitStatus = approve_payment_now
       ? VISIT_STATUS.WAITING_CONSULTATION
@@ -157,6 +169,7 @@ const createPatient = async (req, res, next) => {
     // Create Patient Visit
     const visit = await PatientVisit.create({
       patient_id: patient.id,
+      doctor_id: assignedDoctorId,
       visit_date: new Date(),
       visit_type: 'Outpatient',
       status: initialVisitStatus,

@@ -13,7 +13,7 @@ const {
   User,
   sequelize
 } = require('../models');
-const { PAYMENT_STATUS, VISIT_STATUS, REQUEST_STATUS, SERVICE_CATEGORIES } = require('../config/constants');
+const { PAYMENT_STATUS, VISIT_STATUS, REQUEST_STATUS, SERVICE_CATEGORIES, ROLES } = require('../config/constants');
 
 const getDashboardStats = async (req, res, next) => {
   try {
@@ -32,17 +32,20 @@ const getDashboardStats = async (req, res, next) => {
       }
     });
 
-    // 2. Doctor Queue counts
+    // 2. Doctor Queue counts (scoped to current doctor if logged in as doctor)
+    const doctorFilter = (req.user && req.user.role === ROLES.DOCTOR) ? { doctor_id: req.user.id } : {};
     const waitingForDoctor = await PatientVisit.count({
-      where: { status: VISIT_STATUS.WAITING_CONSULTATION }
+      where: { status: VISIT_STATUS.WAITING_CONSULTATION, ...doctorFilter }
     });
     const inConsultation = await PatientVisit.count({
-      where: { status: VISIT_STATUS.IN_CONSULTATION }
+      where: { status: VISIT_STATUS.IN_CONSULTATION, ...doctorFilter }
     });
     const resultsReadyCount = await PatientVisit.count({
-      where: { status: VISIT_STATUS.RESULTS_READY }
+      where: { status: VISIT_STATUS.RESULTS_READY, ...doctorFilter }
     });
-    const totalConsultations = await Consultation.count();
+    const totalConsultations = await Consultation.count({
+      where: (req.user && req.user.role === ROLES.DOCTOR) ? { doctor_id: req.user.id } : {}
+    });
 
     // 3. Payment Stats
     const pendingPaymentsCount = await Payment.count({
@@ -74,21 +77,23 @@ const getDashboardStats = async (req, res, next) => {
       }
     }) || 0;
 
-    // 4. Laboratory / Procedure counts
+    // 4. Laboratory / Procedure counts (scoped to current lab tech if logged in as lab tech)
+    const techFilter = (req.user && req.user.role === ROLES.LAB_TECH) ? { technician_id: req.user.id } : {};
     const labAwaitingPayment = await ProcedureRequest.count({
-      where: { status: REQUEST_STATUS.AWAITING_PAYMENT }
+      where: { status: REQUEST_STATUS.AWAITING_PAYMENT, ...techFilter }
     });
     const labApproved = await ProcedureRequest.count({
-      where: { status: REQUEST_STATUS.PAYMENT_APPROVED }
+      where: { status: REQUEST_STATUS.PAYMENT_APPROVED, ...techFilter }
     });
     const labInProgress = await ProcedureRequest.count({
-      where: { status: REQUEST_STATUS.IN_PROGRESS }
+      where: { status: REQUEST_STATUS.IN_PROGRESS, ...techFilter }
     });
     const labCompleted = await ProcedureRequest.count({
       where: {
         status: {
           [Op.in]: [REQUEST_STATUS.RESULTS_READY, REQUEST_STATUS.SENT_TO_DOCTOR, REQUEST_STATUS.COMPLETED]
-        }
+        },
+        ...techFilter
       }
     });
 

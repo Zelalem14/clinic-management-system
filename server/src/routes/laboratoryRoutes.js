@@ -25,6 +25,12 @@ router.post(
   laboratoryController.submitLabResult
 );
 
+router.put(
+  '/assign/:id',
+  authorize([ROLES.RECEPTIONIST, ROLES.ADMIN, ROLES.LAB_TECH]),
+  laboratoryController.assignTechnician
+);
+
 router.get(
   '/results/:id',
   authorize([ROLES.LAB_TECH, ROLES.DOCTOR, ROLES.ADMIN, ROLES.RECEPTIONIST]),

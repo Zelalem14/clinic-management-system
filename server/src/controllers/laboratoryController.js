@@ -9,12 +9,12 @@ const {
   Service,
   sequelize
 } = require('../models');
-const { REQUEST_STATUS, VISIT_STATUS, SERVICE_CATEGORIES } = require('../config/constants');
+const { REQUEST_STATUS, VISIT_STATUS, SERVICE_CATEGORIES, ROLES } = require('../config/constants');
 const { logAudit } = require('../middleware/auditLogger');
 
 const listLabRequests = async (req, res, next) => {
   try {
-    const { status, category, search, page = 1, limit = 50 } = req.query;
+    const { status, category, search, technician_id, page = 1, limit = 50 } = req.query;
     const whereClause = {};
 
     // Laboratory requests only
@@ -22,6 +22,17 @@ const listLabRequests = async (req, res, next) => {
 
     if (status) {
       whereClause.status = status;
+    }
+
+    // Role-based filtering:
+    // - Lab Tech only sees requests assigned to them
+    // - Doctor only sees requests ordered for their patients
+    if (req.user && req.user.role === ROLES.LAB_TECH) {
+      whereClause.technician_id = req.user.id;
+    } else if (req.user && req.user.role === ROLES.DOCTOR) {
+      whereClause.doctor_id = req.user.id;
+    } else if (technician_id) {
+      whereClause.technician_id = technician_id;
     }
 
     const patientInclude = {
@@ -50,6 +61,11 @@ const listLabRequests = async (req, res, next) => {
         {
           model: User,
           as: 'doctor',
+          attributes: ['id', 'name', 'email']
+        },
+        {
+          model: User,
+          as: 'technician',
           attributes: ['id', 'name', 'email']
         },
         {
@@ -271,9 +287,45 @@ const getLabResultById = async (req, res, next) => {
   }
 };
 
+const assignTechnician = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { technician_id } = req.body;
+
+    const request = await ProcedureRequest.findByPk(id);
+    if (!request) {
+      return res.status(404).json({
+        success: false,
+        message: 'Procedure request not found'
+      });
+    }
+
+    request.technician_id = technician_id ? parseInt(technician_id, 10) : null;
+    await request.save();
+
+    await logAudit({
+      userId: req.user.id,
+      action: 'LAB_REQUEST_ASSIGNED',
+      entity: 'ProcedureRequest',
+      entityId: request.id,
+      details: { technician_id: request.technician_id },
+      ipAddress: req.ip
+    });
+
+    res.json({
+      success: true,
+      message: 'Technician assigned successfully',
+      procedure_request: request
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   listLabRequests,
   startTest,
   submitLabResult,
-  getLabResultById
+  getLabResultById,
+  assignTechnician
 };

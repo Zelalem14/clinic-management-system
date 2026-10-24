@@ -14,22 +14,31 @@ const {
   Appointment,
   sequelize
 } = require('../models');
-const { CONSULTATION_STATUS, VISIT_STATUS } = require('../config/constants');
+const { CONSULTATION_STATUS, VISIT_STATUS, ROLES } = require('../config/constants');
 const { logAudit } = require('../middleware/auditLogger');
 
 const getDoctorWaitingQueue = async (req, res, next) => {
   try {
+    const whereClause = {
+      status: {
+        [Op.in]: [
+          VISIT_STATUS.WAITING_CONSULTATION,
+          VISIT_STATUS.IN_CONSULTATION,
+          VISIT_STATUS.RESULTS_READY,
+          VISIT_STATUS.LAB_PENDING
+        ]
+      }
+    };
+
+    // If logged in as Doctor, only show patients assigned to this doctor
+    if (req.user && req.user.role === ROLES.DOCTOR) {
+      whereClause.doctor_id = req.user.id;
+    } else if (req.query.doctor_id) {
+      whereClause.doctor_id = req.query.doctor_id;
+    }
+
     const visits = await PatientVisit.findAll({
-      where: {
-        status: {
-          [Op.in]: [
-            VISIT_STATUS.WAITING_CONSULTATION,
-            VISIT_STATUS.IN_CONSULTATION,
-            VISIT_STATUS.RESULTS_READY,
-            VISIT_STATUS.LAB_PENDING
-          ]
-        }
-      },
+      where: whereClause,
       include: [
         {
           model: Patient,

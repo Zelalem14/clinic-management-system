@@ -10,7 +10,7 @@ const {
   User,
   sequelize
 } = require('../models');
-const { PAYMENT_STATUS, VISIT_STATUS, REQUEST_STATUS } = require('../config/constants');
+const { PAYMENT_STATUS, VISIT_STATUS, REQUEST_STATUS, ROLES } = require('../config/constants');
 const { logAudit } = require('../middleware/auditLogger');
 
 const listPayments = async (req, res, next) => {
@@ -201,6 +201,19 @@ const approvePayment = async (req, res, next) => {
         if (procRequest) {
           procRequest.status = REQUEST_STATUS.PAYMENT_APPROVED;
           procRequest.paid_amount = parseFloat(procRequest.paid_amount || 0) + parseFloat(allocation.amount);
+          
+          // Assign to selected Laboratory Technician
+          if (req.body.technician_id) {
+            procRequest.technician_id = parseInt(req.body.technician_id, 10);
+          } else if (!procRequest.technician_id) {
+            const defaultTech = await User.findOne({ 
+              where: { role: ROLES.LAB_TECH, is_active: true }, 
+              order: [['id', 'ASC']], 
+              transaction: t 
+            });
+            if (defaultTech) procRequest.technician_id = defaultTech.id;
+          }
+          
           await procRequest.save({ transaction: t });
 
           // Update items

@@ -51,6 +51,9 @@ ProcedureRequest.belongsTo(Patient, { foreignKey: 'patient_id', as: 'patient' })
 User.hasMany(ProcedureRequest, { foreignKey: 'doctor_id', as: 'doctor_requests' });
 ProcedureRequest.belongsTo(User, { foreignKey: 'doctor_id', as: 'doctor' });
 
+User.hasMany(ProcedureRequest, { foreignKey: 'technician_id', as: 'assigned_requests' });
+ProcedureRequest.belongsTo(User, { foreignKey: 'technician_id', as: 'technician' });
+
 // ProcedureRequest <-> ProcedureRequestItem
 ProcedureRequest.hasMany(ProcedureRequestItem, { foreignKey: 'request_id', as: 'items', onDelete: 'CASCADE' });
 ProcedureRequestItem.belongsTo(ProcedureRequest, { foreignKey: 'request_id', as: 'request' });
