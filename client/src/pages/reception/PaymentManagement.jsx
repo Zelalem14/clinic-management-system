@@ -119,7 +119,7 @@ export const PaymentManagement = () => {
             <span>Payments & Counter Approvals (Ethiopian Birr - ETB)</span>
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Verify counter, Telebirr, and CBE Birr payments for consultations, lab tests, and procedures.
+            Verify counter, Telebirr, and Bank payments for consultations, lab tests, and procedures.
           </p>
         </div>
 
@@ -372,7 +372,7 @@ export const PaymentManagement = () => {
                   }`}
                 >
                   <div className="text-xl mb-1">🏦</div>
-                  <div>Bank (CBE)</div>
+                  <div>Bank</div>
                 </button>
               </div>
             </div>
@@ -385,7 +385,7 @@ export const PaymentManagement = () => {
                 type="text"
                 value={approveForm.transaction_reference}
                 onChange={(e) => setApproveForm({ ...approveForm, transaction_reference: e.target.value })}
-                placeholder="e.g. Telebirr SMS ref, CBE transfer #, or Cash handed at counter"
+                placeholder="e.g. Telebirr SMS ref, Bank transfer #, or Cash handed at counter"
                 className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
               />
             </div>

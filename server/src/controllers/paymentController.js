@@ -34,14 +34,22 @@ const listPayments = async (req, res, next) => {
       whereClause.created_at = { [Op.between]: [startDate, endDate] };
     }
 
-    const patientWhere = {};
+    const patientInclude = {
+      model: Patient,
+      as: 'patient',
+      attributes: ['id', 'card_number', 'full_name', 'phone']
+    };
+
     if (search && search.trim()) {
       const searchTerm = `%${search.trim()}%`;
-      patientWhere[Op.or] = [
-        { card_number: { [Op.like]: searchTerm } },
-        { full_name: { [Op.like]: searchTerm } },
-        { phone: { [Op.like]: searchTerm } }
-      ];
+      patientInclude.where = {
+        [Op.or]: [
+          { card_number: { [Op.like]: searchTerm } },
+          { full_name: { [Op.like]: searchTerm } },
+          { phone: { [Op.like]: searchTerm } }
+        ]
+      };
+      patientInclude.required = true;
     }
 
     const offset = (parseInt(page, 10) - 1) * parseInt(limit, 10);
@@ -49,12 +57,7 @@ const listPayments = async (req, res, next) => {
     const { count, rows } = await Payment.findAndCountAll({
       where: whereClause,
       include: [
-        {
-          model: Patient,
-          as: 'patient',
-          where: Object.keys(patientWhere).length > 0 ? patientWhere : undefined,
-          attributes: ['id', 'card_number', 'full_name', 'phone']
-        },
+        patientInclude,
         {
           model: PatientVisit,
           as: 'visit',

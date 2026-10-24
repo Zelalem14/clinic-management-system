@@ -259,52 +259,22 @@ export const PatientRegistration = () => {
             <span>2. Initial Clinical Information</span>
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                Consultation Type
-              </label>
-              <select
-                name="consultation_type"
-                value={formData.consultation_type}
-                onChange={handleChange}
-                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 bg-white"
-              >
-                <option value="General Consultation">General Consultation (Dr. Abebe Kebede)</option>
-                <option value="Pediatric Consultation">Pediatric Consultation</option>
-                <option value="Specialist Physician">Specialist Physician</option>
-                <option value="Antenatal Care (ANC)">Antenatal Care (ANC)</option>
-                <option value="Follow-up Review">Follow-up Review</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                Known Drug Allergies
-              </label>
-              <input
-                type="text"
-                name="allergies"
-                value={formData.allergies}
-                onChange={handleChange}
-                placeholder="e.g. Penicillin, Sulfa, None"
-                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
-              />
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                Presenting Symptoms / Notes
-              </label>
-              <textarea
-                name="notes"
-                rows="2"
-                value={formData.notes}
-                onChange={handleChange}
-                placeholder="Brief reason for visit recorded by Meron Alemu at reception..."
-                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
-              />
-            </div>
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+              Consultation Type
+            </label>
+            <select
+              name="consultation_type"
+              value={formData.consultation_type}
+              onChange={handleChange}
+              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 bg-white"
+            >
+              <option value="General Consultation">General Consultation (Dr. Abebe Kebede)</option>
+              <option value="Pediatric Consultation">Pediatric Consultation</option>
+              <option value="Specialist Physician">Specialist Physician</option>
+              <option value="Antenatal Care (ANC)">Antenatal Care (ANC)</option>
+              <option value="Follow-up Review">Follow-up Review</option>
+            </select>
           </div>
         </div>
 
@@ -373,14 +343,14 @@ export const PatientRegistration = () => {
                   }`}
                 >
                   <div className="text-xl mb-1">🏦</div>
-                  <div>Bank (CBE)</div>
+                  <div>Bank</div>
                 </button>
               </div>
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                Writing / Note (e.g. Telebirr code, CBE slip number, or cash handed at counter)
+                Writing / Note (e.g. Telebirr code, Bank slip number, or cash handed at counter)
               </label>
               <input
                 type="text"

@@ -41,10 +41,10 @@ export const LabDashboard = () => {
   const [reportData, setReportData] = useState(null);
   const [showReportModal, setShowReportModal] = useState(false);
 
-  const fetchLabRequests = async () => {
+  const fetchLabRequests = async (overrideSearch = search) => {
     try {
       setLoading(true);
-      let query = `?category=laboratory&search=${encodeURIComponent(search)}`;
+      let query = `?category=laboratory&search=${encodeURIComponent((overrideSearch || '').trim())}`;
       if (statusFilter) query += `&status=${statusFilter}`;
 
       const res = await api.get(`/laboratory/requests${query}`);
@@ -57,12 +57,17 @@ export const LabDashboard = () => {
   };
 
   useEffect(() => {
-    fetchLabRequests();
+    fetchLabRequests(search);
   }, [statusFilter]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    fetchLabRequests();
+    fetchLabRequests(search);
+  };
+
+  const handleClearSearch = () => {
+    setSearch('');
+    fetchLabRequests('');
   };
 
   const handleStartTest = async (req) => {
@@ -215,14 +220,29 @@ export const LabDashboard = () => {
           <input
             type="text"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by card number or patient name..."
-            className="w-full bg-white rounded-xl border border-slate-300 pl-9 pr-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none"
+            onChange={(e) => {
+              setSearch(e.target.value);
+              if (e.target.value === '') {
+                fetchLabRequests('');
+              }
+            }}
+            placeholder="Search by patient name (e.g. Almaz, Blen) or card number (e.g. 0002)..."
+            className="w-full bg-white rounded-xl border border-slate-300 pl-9 pr-9 py-2 text-sm text-slate-900 focus:border-purple-500 focus:outline-none"
           />
+          {search && (
+            <button
+              type="button"
+              onClick={handleClearSearch}
+              className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 text-sm font-bold cursor-pointer"
+              title="Clear search"
+            >
+              ✕
+            </button>
+          )}
         </div>
         <button
           type="submit"
-          className="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-sm font-semibold rounded-xl"
+          className="px-5 py-2 bg-purple-700 hover:bg-purple-800 text-white text-sm font-semibold rounded-xl cursor-pointer shadow-xs transition-colors"
         >
           Search
         </button>

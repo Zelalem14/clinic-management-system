@@ -24,13 +24,21 @@ const listLabRequests = async (req, res, next) => {
       whereClause.status = status;
     }
 
-    const patientWhere = {};
+    const patientInclude = {
+      model: Patient,
+      as: 'patient',
+      attributes: ['id', 'card_number', 'full_name', 'age', 'sex', 'phone', 'allergies', 'medical_history', 'current_medications']
+    };
+
     if (search && search.trim()) {
       const searchTerm = `%${search.trim()}%`;
-      patientWhere[Op.or] = [
-        { card_number: { [Op.like]: searchTerm } },
-        { full_name: { [Op.like]: searchTerm } }
-      ];
+      patientInclude.where = {
+        [Op.or]: [
+          { card_number: { [Op.like]: searchTerm } },
+          { full_name: { [Op.like]: searchTerm } }
+        ]
+      };
+      patientInclude.required = true;
     }
 
     const offset = (parseInt(page, 10) - 1) * parseInt(limit, 10);
@@ -38,12 +46,7 @@ const listLabRequests = async (req, res, next) => {
     const { count, rows } = await ProcedureRequest.findAndCountAll({
       where: whereClause,
       include: [
-        {
-          model: Patient,
-          as: 'patient',
-          where: Object.keys(patientWhere).length > 0 ? patientWhere : undefined,
-          attributes: ['id', 'card_number', 'full_name', 'age', 'sex', 'phone', 'allergies', 'medical_history', 'current_medications']
-        },
+        patientInclude,
         {
           model: User,
           as: 'doctor',
