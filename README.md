@@ -1,4 +1,4 @@
-# St. Jude Clinic Management System (CMS)
+# Tena Specialty Clinic Management System (CMS)
 
 A full-stack, responsive, production-ready **Clinic Management System** built with **React (Vite) + Tailwind CSS**, **Node.js (Express)**, and **Sequelize ORM** (supporting **MySQL** and **SQLite**).
 

@@ -147,7 +147,7 @@ export const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
         {/* Footer info in sidebar */}
         <div className="p-3 border-t border-slate-100 bg-slate-50/50 text-xs text-slate-400">
           <div className="flex items-center justify-between">
-            <span>St. Jude CMS v1.0</span>
+            <span>Tena Clinic CMS v1.0</span>
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" title="System Online" />
           </div>
         </div>

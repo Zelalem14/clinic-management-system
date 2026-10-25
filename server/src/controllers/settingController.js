@@ -6,12 +6,12 @@ const getSettings = async (req, res, next) => {
     let setting = await ClinicSetting.findOne();
     if (!setting) {
       setting = await ClinicSetting.create({
-        clinic_name: 'St. Jude Community Clinic',
-        address: '124 Healthcare Boulevard, City Center',
-        phone: '+1 (555) 019-2834',
-        email: 'info@stjudeclinic.org',
-        currency_symbol: '$',
-        receipt_footer: 'Thank you for choosing St. Jude Clinic. Wishing you swift recovery!'
+        clinic_name: 'Tena Specialty Clinic',
+        address: 'Bole Sub-City, Africa Avenue, Addis Ababa, Ethiopia',
+        phone: '+251 11 661 2345',
+        email: 'info@tenaclinic.et',
+        currency_symbol: 'ETB',
+        receipt_footer: 'እናመሰግናለን! Thank you for visiting Tena Specialty Clinic. Wishing you swift recovery!'
       });
     }
 

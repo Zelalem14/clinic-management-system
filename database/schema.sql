@@ -271,11 +271,11 @@ CREATE TABLE IF NOT EXISTS `audit_logs` (
 -- 16. Clinic Settings Table
 CREATE TABLE IF NOT EXISTS `clinic_settings` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
-  `clinic_name` VARCHAR(150) DEFAULT 'St. Jude Community Clinic',
+  `clinic_name` VARCHAR(150) DEFAULT 'Tena Specialty Clinic',
   `address` TEXT NULL,
   `phone` VARCHAR(50) NULL,
   `email` VARCHAR(100) NULL,
-  `currency_symbol` VARCHAR(10) DEFAULT '$',
+  `currency_symbol` VARCHAR(10) DEFAULT 'ETB',
   `receipt_footer` TEXT NULL,
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
