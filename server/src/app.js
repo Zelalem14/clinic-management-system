@@ -69,29 +69,66 @@ const authLimiter = rateLimit({
 });
 app.use('/api/auth', authLimiter);
 
-// API Health Check
-app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    service: 'Clinic Management System API'
-  });
+const initDatabase = require('./config/initDatabase');
+const { sequelize } = require('./models');
+
+// Database readiness middleware for cold starts (essential for Vercel Serverless)
+app.use(async (req, res, next) => {
+  if (req.path === '/api/health' || req.path === '/health') {
+    return next();
+  }
+  try {
+    await initDatabase();
+    next();
+  } catch (err) {
+    console.error('Database Initialization Middleware Error:', err);
+    return res.status(500).json({
+      success: false,
+      message: `Database connection or initialization error: ${err.message || 'Unknown error'}`
+    });
+  }
 });
 
-// Mount Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/patients', patientRoutes);
-app.use('/api/visits', visitRoutes);
-app.use('/api/consultations', consultationRoutes);
-app.use('/api/services', serviceRoutes);
-app.use('/api/procedure-requests', procedureRequestRoutes);
-app.use('/api/payments', paymentRoutes);
-app.use('/api/laboratory', laboratoryRoutes);
-app.use('/api/prescriptions', prescriptionRoutes);
-app.use('/api/appointments', appointmentRoutes);
-app.use('/api/reports', reportRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/settings', settingRoutes);
+// API Health Check
+const healthHandler = async (req, res) => {
+  let dbStatus = 'connected';
+  try {
+    await sequelize.authenticate();
+  } catch (e) {
+    dbStatus = 'disconnected: ' + e.message;
+  }
+  res.json({
+    status: 'healthy',
+    database: dbStatus,
+    dialect: sequelize.getDialect(),
+    timestamp: new Date().toISOString(),
+    service: 'Tena Clinic Management System API'
+  });
+};
+app.get('/api/health', healthHandler);
+app.get('/health', healthHandler);
+
+// Mount Routes (support both /api/* and /* paths for universal deployment compatibility)
+const routeList = [
+  { path: 'auth', router: authRoutes },
+  { path: 'patients', router: patientRoutes },
+  { path: 'visits', router: visitRoutes },
+  { path: 'consultations', router: consultationRoutes },
+  { path: 'services', router: serviceRoutes },
+  { path: 'procedure-requests', router: procedureRequestRoutes },
+  { path: 'payments', router: paymentRoutes },
+  { path: 'laboratory', router: laboratoryRoutes },
+  { path: 'prescriptions', router: prescriptionRoutes },
+  { path: 'appointments', router: appointmentRoutes },
+  { path: 'reports', router: reportRoutes },
+  { path: 'users', router: userRoutes },
+  { path: 'settings', router: settingRoutes }
+];
+
+routeList.forEach(({ path, router }) => {
+  app.use(`/api/${path}`, router);
+  app.use(`/${path}`, router);
+});
 
 // Catch 404
 app.use((req, res) => {

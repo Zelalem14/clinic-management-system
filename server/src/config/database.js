@@ -1,6 +1,7 @@
 const { Sequelize } = require('sequelize');
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
 require('dotenv').config();
 
 const dialect = process.env.DB_DIALECT || (process.env.DATABASE_URL ? 'mysql' : 'sqlite');
@@ -59,11 +60,26 @@ if (process.env.DATABASE_URL) {
   );
 } else {
   // SQLite configuration
-  const dbDir = path.join(__dirname, '../../../database');
-  if (!fs.existsSync(dbDir)) {
-    fs.mkdirSync(dbDir, { recursive: true });
+  // In serverless environments (Vercel / AWS Lambda), the filesystem is read-only except os.tmpdir() (/tmp)
+  const isServerless = process.env.VERCEL === '1' || !!process.env.AWS_LAMBDA_FUNCTION_NAME || !!process.env.NOW_REGION;
+  let storagePath;
+
+  if (process.env.DB_STORAGE) {
+    storagePath = process.env.DB_STORAGE;
+  } else if (isServerless) {
+    storagePath = path.join(os.tmpdir(), 'clinic.sqlite');
+  } else {
+    const dbDir = path.join(__dirname, '../../../database');
+    try {
+      if (!fs.existsSync(dbDir)) {
+        fs.mkdirSync(dbDir, { recursive: true });
+      }
+      storagePath = path.join(dbDir, 'clinic.sqlite');
+    } catch (err) {
+      console.warn('Could not write to local database directory, falling back to os.tmpdir():', err.message);
+      storagePath = path.join(os.tmpdir(), 'clinic.sqlite');
+    }
   }
-  const storagePath = process.env.DB_STORAGE || path.join(dbDir, 'clinic.sqlite');
 
   sequelize = new Sequelize({
     dialect: 'sqlite',

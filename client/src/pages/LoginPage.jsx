@@ -99,7 +99,19 @@ export const LoginPage = () => {
           break;
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+      console.error('Login error:', err);
+      const serverMsg = err.response?.data?.message;
+      if (serverMsg) {
+        setError(serverMsg);
+      } else if (err.response?.status === 404) {
+        setError('API server not reachable (404 Not Found). Please verify deployment configuration.');
+      } else if (err.response?.status >= 500) {
+        setError(`Server error (${err.response.status}). Please check backend deployment logs.`);
+      } else if (err.code === 'ERR_NETWORK' || !err.response) {
+        setError('Network error: Unable to connect to clinic server. Please check internet connection.');
+      } else {
+        setError('Login failed. Please check your credentials.');
+      }
     } finally {
       setIsSubmitting(false);
     }
