@@ -3,6 +3,8 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
+const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
 
 const authRoutes = require('./routes/authRoutes');
@@ -138,7 +140,20 @@ routeList.forEach(({ path, router }) => {
   app.use(`/${path}`, router);
 });
 
-// Catch 404
+// Serve static React frontend files in production if built
+const clientDistPath = path.resolve(__dirname, '../../client/dist');
+if (fs.existsSync(clientDistPath)) {
+  app.use(express.static(clientDistPath));
+  app.get('*', (req, res, next) => {
+    // If request starts with /api or /health, pass to API 404 handler
+    if (req.path.startsWith('/api') || req.path.startsWith('/health')) {
+      return next();
+    }
+    res.sendFile(path.join(clientDistPath, 'index.html'));
+  });
+}
+
+// Catch 404 for unmatched API routes
 app.use((req, res) => {
   res.status(404).json({
     success: false,

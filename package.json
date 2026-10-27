@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "Full-Stack Responsive Clinic Management System with Node.js, Express, Sequelize ORM, MySQL/SQLite, and React + Tailwind CSS",
   "scripts": {
-    "build": "cd client && npm install && npm run build",
+    "start": "node server/src/server.js",
+    "build": "npm --prefix server install && npm --prefix client install && npm --prefix client run build",
+    "render-build": "npm --prefix server install && npm --prefix client install && npm --prefix client run build",
     "server": "npm --prefix server start",
     "server:dev": "npm --prefix server run dev",
     "server:seed": "npm --prefix server run seed",

@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: clinic-management-system
+    env: node
+    plan: free
+    buildCommand: npm run render-build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: AUTO_SEED
+        value: "true"
