@@ -91,19 +91,27 @@ app.use(async (req, res, next) => {
 
 // API Health Check
 const healthHandler = async (req, res) => {
-  let dbStatus = 'connected';
   try {
-    await sequelize.authenticate();
-  } catch (e) {
-    dbStatus = 'disconnected: ' + e.message;
+    let dbStatus = 'connected';
+    try {
+      await sequelize.authenticate();
+    } catch (e) {
+      dbStatus = 'disconnected: ' + e.message;
+    }
+    return res.json({
+      status: 'healthy',
+      database: dbStatus,
+      dialect: sequelize?.getDialect ? sequelize.getDialect() : 'unknown',
+      timestamp: new Date().toISOString(),
+      service: 'Tena Clinic Management System API'
+    });
+  } catch (err) {
+    return res.status(500).json({
+      status: 'error',
+      message: err.message,
+      stack: err.stack
+    });
   }
-  res.json({
-    status: 'healthy',
-    database: dbStatus,
-    dialect: sequelize.getDialect(),
-    timestamp: new Date().toISOString(),
-    service: 'Tena Clinic Management System API'
-  });
 };
 app.get('/api/health', healthHandler);
 app.get('/health', healthHandler);
