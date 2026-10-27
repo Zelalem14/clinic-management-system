@@ -100,6 +100,10 @@ export const LoginPage = () => {
       }
     } catch (err) {
       console.error('Login error:', err);
+      if (err.response?.data?.protection?.vercel_auth_enabled) {
+        setError('Vercel Deployment Protection is active on this deployment. Please turn off "Vercel Authentication" in your Vercel Project Settings > Deployment Protection to allow other devices to log in.');
+        return;
+      }
       const serverMsg = err.response?.data?.message;
       if (serverMsg) {
         setError(serverMsg);
