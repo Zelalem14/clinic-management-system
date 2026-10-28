@@ -51,20 +51,58 @@ flowchart LR
 
 ---
 
-## 2. User Roles & Demo Credentials
+## 2. User Roles & Authentication
 
-The system includes pre-seeded demo accounts with one-click autofill buttons on the login screen:
+The system uses secure email/password authentication. Staff accounts are managed permanently by the Administrator:
 
 | Role | Email | Password | Primary Functions |
 | :--- | :--- | :--- | :--- |
-| **Administrator** | `admin@clinic.com` | `Admin@123` | Financial dashboards, service pricing configuration, staff user accounts, clinic settings, audit logs. |
-| **Receptionist** | `reception@clinic.com` | `Recept@123` | Patient intake, card number generation, fee collection & verification, payment approvals, routing to doctor queue. |
-| **Doctor** | `doctor@clinic.com` | `Doctor@123` | Waiting queue, clinical notes, diagnosis, procedure ordering (lab, ultrasound, X-ray), review results, e-prescriptions. |
-| **Lab Technician** | `lab@clinic.com` | `Lab@123` | Diagnostics queue, billable fee enforcement, test processing, recording findings, automated results dispatch. |
+| **Administrator** | `admin@clinic.com` | `Admin@123` | Financial dashboards, executive reports, staff user accounts, service pricing, clinic settings, audit logs. |
+| **Receptionist** | `reception@clinic.com` | `Recept@123` | Patient registration with 10-day card fee validation, daily ETB revenue tracking (Cash, Telebirr, Bank), queue management. |
+| **Doctor** | `doctor@clinic.com` | `Doctor@123` | Weekly patient counter, disease classification by age group, consultations, e-prescriptions, procedure ordering. |
+| **Lab Technician** | `lab@clinic.com` | `Lab@123` | Billable diagnostics queue, test analytics, result entry, automated physician notification. |
+
+> **Security Note**: Public shortcuts and demo autofill buttons are disabled on the login screen to prevent credential exposure. All authenticated staff can securely update their credentials at any time via the **Password** modal in the top navigation bar.
 
 ---
 
-## 3. Core Clinical & Operational Workflows
+## 3. Key Features & Business Logic
+
+### 1. Role-Based Reporting & Analytics
+- **Doctor Analytics**:
+  - Weekly consultation tracking showing patient volume week-over-week.
+  - Disease classification broken down into 4 demographic age cohorts:
+    - **Pediatric** (Age 0–14)
+    - **Youth** (Age 15–24)
+    - **Adults** (Age 25–54)
+    - **Seniors** (Age 55+)
+- **Reception Analytics**:
+  - **Dedicated Daily Revenue Tracker**: Real-time tracking of today's collected revenue in Birr (ETB) categorized by payment method (**Cash**, **Telebirr**, **Bank Transfer**), transaction count, and fee type (Card, Consultation, Diagnostic). Searchable itemized receipt audit table.
+  - **Weekly Performance Overview**: 7-day comparative revenue and patient footfall trends.
+- **Laboratory Analytics**:
+  - Weekly and daily test volume metrics, completion rates, pending backlogs, and most frequently ordered diagnostic tests.
+- **Executive Admin Reporting**:
+  - Centralized multi-departmental reporting dashboard with cross-functional metrics and date-range filtering.
+
+### 2. Patient Card Fee & 10-Day Expiry Logic
+- Standard patient card fee: **150.00 ETB**.
+- **10-Day Free Window**: A patient's card fee remains valid for **10 days** from their last payment date.
+- **Automatic Expiry & Renewal**:
+  - If a patient returns within 10 days of their last card fee payment, the card fee is **waived/free (0.00 ETB)**.
+  - If a patient returns after 10 days, the system automatically prompts and charges the standard card renewal fee (150.00 ETB).
+  - Approving a renewal payment dynamically resets the patient's card fee validity timer.
+
+### 3. Secure Authentication & Password Management
+- Clean, confidential login interface requiring registered email and password.
+- In-app **Change Password** feature for authenticated users with current password validation and secure bcrypt hashing.
+
+### 4. Permanent Staff Accounts & Data Persistence
+- Admin-created staff accounts (doctors, lab technicians, receptionists) are permanently preserved in the database.
+- Safe database initialization never drops tables or wipes existing user accounts upon server restarts.
+
+---
+
+## 4. Core Clinical & Operational Workflows
 
 ```mermaid
 sequenceDiagram
@@ -356,7 +394,7 @@ npm run dev
 Open your browser and navigate to `http://localhost:5173`.
 
 ### Step 6: Log In with Any Role
-On the login screen (`http://localhost:5173/login`), click any of the 4 quick demo buttons at the bottom to automatically populate credentials:
+On the login screen (`http://localhost:5173/login`), type your registered credentials:
 - **Receptionist**: `reception@clinic.com` / `Recept@123`
 - **Doctor**: `doctor@clinic.com` / `Doctor@123`
 - **Lab Technician**: `lab@clinic.com` / `Lab@123`
