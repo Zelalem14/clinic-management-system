@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS `patients` (
   `emergency_contact` VARCHAR(100) NULL,
   `consultation_type` VARCHAR(100) DEFAULT 'General Consultation',
   `registration_date` DATE NOT NULL,
+  `last_card_fee_date` DATETIME NULL,
   `allergies` TEXT NULL,
   `medical_history` TEXT NULL,
   `current_medications` TEXT NULL,

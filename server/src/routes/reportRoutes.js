@@ -13,6 +13,27 @@ router.get(
   reportController.getDashboardStats
 );
 
+// Doctor Weekly Clinical Report
+router.get(
+  '/doctor-weekly',
+  authorize([ROLES.DOCTOR, ROLES.ADMIN]),
+  reportController.getDoctorWeeklyReport
+);
+
+// Reception Weekly & Daily Analytics
+router.get(
+  '/reception-analytics',
+  authorize([ROLES.RECEPTIONIST, ROLES.ADMIN]),
+  reportController.getReceptionAnalytics
+);
+
+// Laboratory Analytics Report
+router.get(
+  '/laboratory-analytics',
+  authorize([ROLES.LAB_TECH, ROLES.ADMIN, ROLES.DOCTOR]),
+  reportController.getLaboratoryAnalytics
+);
+
 // Revenue alias
 router.get(
   '/revenue',

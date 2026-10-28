@@ -233,6 +233,13 @@ const approvePayment = async (req, res, next) => {
           payment.visit.status = VISIT_STATUS.WAITING_CONSULTATION;
           await payment.visit.save({ transaction: t });
         }
+        // Update patient's card fee validity date on approved card fee payment
+        if (allocation.allocation_type === 'card_fee' && payment.patient_id) {
+          await Patient.update(
+            { last_card_fee_date: new Date() },
+            { where: { id: payment.patient_id }, transaction: t }
+          );
+        }
       }
     }
 

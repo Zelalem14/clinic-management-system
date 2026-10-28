@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import ChangePasswordModal from './ChangePasswordModal';
 import { 
   Building2, 
   LogOut, 
@@ -8,11 +9,13 @@ import {
   ShieldCheck, 
   Stethoscope, 
   TestTubes, 
-  ClipboardList
+  ClipboardList,
+  KeyRound
 } from 'lucide-react';
 
 export const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
   const { user, logout } = useAuth();
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
 
   const getRoleBadge = (role) => {
     switch (role) {
@@ -80,6 +83,16 @@ export const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
 
                 <button
                   type="button"
+                  onClick={() => setPasswordModalOpen(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-brand-600 hover:bg-brand-50 border border-slate-200 hover:border-brand-200 rounded-lg transition-all cursor-pointer"
+                  title="Change your password"
+                >
+                  <KeyRound className="w-3.5 h-3.5 text-slate-500" />
+                  <span className="hidden lg:inline">Password</span>
+                </button>
+
+                <button
+                  type="button"
                   onClick={logout}
                   className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 rounded-lg transition-all cursor-pointer"
                   title="Sign out of system"
@@ -93,6 +106,12 @@ export const Navbar = ({ sidebarOpen, setSidebarOpen }) => {
 
         </div>
       </div>
+
+      {/* Change Password Modal */}
+      <ChangePasswordModal
+        isOpen={passwordModalOpen}
+        onClose={() => setPasswordModalOpen(false)}
+      />
     </header>
   );
 };

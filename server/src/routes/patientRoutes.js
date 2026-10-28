@@ -33,6 +33,12 @@ router.put(
 );
 
 router.get(
+  '/:id/card-fee-status',
+  authorize([ROLES.RECEPTIONIST, ROLES.DOCTOR, ROLES.ADMIN]),
+  patientController.getCardFeeStatus
+);
+
+router.get(
   '/:id/medical-history',
   authorize([ROLES.DOCTOR, ROLES.ADMIN, ROLES.RECEPTIONIST]),
   patientController.getMedicalHistory

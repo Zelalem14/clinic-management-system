@@ -14,6 +14,7 @@ import PatientRegistration from './pages/reception/PatientRegistration';
 import PatientList from './pages/reception/PatientList';
 import PaymentManagement from './pages/reception/PaymentManagement';
 import ClinicPriceList from './pages/reception/ClinicPriceList';
+import ReceptionReports from './pages/reception/ReceptionReports';
 
 // Doctor Pages
 import DoctorDashboard from './pages/doctor/DoctorDashboard';
@@ -21,12 +22,15 @@ import DoctorQueue from './pages/doctor/DoctorQueue';
 import ConsultationView from './pages/doctor/ConsultationView';
 import DoctorAppointments from './pages/doctor/DoctorAppointments';
 import DoctorLabResults from './pages/doctor/DoctorLabResults';
+import DoctorReports from './pages/doctor/DoctorReports';
 
 // Lab Pages
 import LabDashboard from './pages/laboratory/LabDashboard';
+import LabReports from './pages/laboratory/LabReports';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminReports from './pages/admin/AdminReports';
 import ServiceManagement from './pages/admin/ServiceManagement';
 import UserManagement from './pages/admin/UserManagement';
 import ClinicSettings from './pages/admin/ClinicSettings';
@@ -130,6 +134,14 @@ export const App = () => {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/reception/reports"
+              element={
+                <ProtectedRoute allowedRoles={['receptionist', 'admin']}>
+                  <ReceptionReports />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Doctor Routes */}
             <Route
@@ -180,6 +192,14 @@ export const App = () => {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/doctor/reports"
+              element={
+                <ProtectedRoute allowedRoles={['doctor', 'admin']}>
+                  <DoctorReports />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Laboratory Routes */}
             <Route
@@ -198,6 +218,14 @@ export const App = () => {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/laboratory/reports"
+              element={
+                <ProtectedRoute allowedRoles={['lab_tech', 'admin', 'doctor']}>
+                  <LabReports />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Administrator Routes */}
             <Route
@@ -212,7 +240,7 @@ export const App = () => {
               path="/admin/reports"
               element={
                 <ProtectedRoute allowedRoles={['admin']}>
-                  <AdminDashboard />
+                  <AdminReports />
                 </ProtectedRoute>
               }
             />

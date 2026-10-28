@@ -29,47 +29,6 @@ export const LoginPage = () => {
   const searchParams = new URLSearchParams(location.search);
   const isExpired = searchParams.get('expired');
 
-  const demoAccounts = [
-    {
-      role: 'Receptionist',
-      name: 'Meron Alemu',
-      email: 'reception@clinic.com',
-      password: 'Recept@123',
-      icon: ClipboardList,
-      color: 'hover:border-sky-500 hover:bg-sky-50 text-sky-700'
-    },
-    {
-      role: 'Doctor',
-      name: 'Dr. Abebe Kebede',
-      email: 'doctor@clinic.com',
-      password: 'Doctor@123',
-      icon: Stethoscope,
-      color: 'hover:border-emerald-500 hover:bg-emerald-50 text-emerald-700'
-    },
-    {
-      role: 'Lab Technician',
-      name: 'Assefa Zegeye',
-      email: 'lab@clinic.com',
-      password: 'Lab@123',
-      icon: TestTubes,
-      color: 'hover:border-purple-500 hover:bg-purple-50 text-purple-700'
-    },
-    {
-      role: 'Administrator',
-      name: 'Hussien Seid',
-      email: 'admin@clinic.com',
-      password: 'Admin@123',
-      icon: ShieldCheck,
-      color: 'hover:border-rose-500 hover:bg-rose-50 text-rose-700'
-    }
-  ];
-
-  const handleQuickFill = (acc) => {
-    setEmail(acc.email);
-    setPassword(acc.password);
-    setError('');
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email || !password) {
@@ -216,30 +175,10 @@ export const LoginPage = () => {
             </button>
           </form>
 
-          {/* Quick Demo Credentials Switcher with Ethiopian Names */}
-          <div className="mt-8 pt-6 border-t border-slate-100">
-            <p className="text-xs font-medium text-slate-500 text-center mb-3">
-              Click to autofill Ethiopian Demo Staff Credentials:
-            </p>
-            <div className="grid grid-cols-2 gap-2">
-              {demoAccounts.map((acc) => {
-                const Icon = acc.icon;
-                return (
-                  <button
-                    key={acc.role}
-                    type="button"
-                    onClick={() => handleQuickFill(acc)}
-                    className={`flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 text-left transition-all ${acc.color}`}
-                  >
-                    <Icon className="w-4 h-4 shrink-0" />
-                    <div>
-                      <div className="text-xs font-bold leading-tight">{acc.name}</div>
-                      <div className="text-[10px] text-slate-500 font-medium">{acc.role}</div>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
+          {/* Secure Portal Footer Notice */}
+          <div className="mt-8 pt-5 border-t border-slate-100 flex items-center justify-center gap-1.5 text-xs text-slate-400">
+            <ShieldCheck className="w-4 h-4 text-emerald-600" />
+            <span>Authorized Medical Staff Portal &bull; 256-bit Encrypted</span>
           </div>
 
         </div>

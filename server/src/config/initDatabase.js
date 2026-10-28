@@ -20,13 +20,14 @@ const initDatabase = async () => {
       // Sync schema without dropping data
       await sequelize.sync();
 
-      // Check if user accounts exist
+      // Check if user accounts exist (Staff persistence guard)
       const userCount = await User.count().catch(() => 0);
-      if (process.env.AUTO_SEED === 'true' || userCount === 0) {
-        console.log(`Initial clinic seeding required (users count: ${userCount}, AUTO_SEED: ${process.env.AUTO_SEED}). Initializing demo data...`);
-        const forceDrop = process.env.AUTO_SEED === 'true' && process.env.NODE_ENV !== 'production';
-        await seedDatabase(forceDrop);
+      if (userCount === 0) {
+        console.log(`Initial clinic seeding required (empty database: ${userCount} users). Initializing default demo data...`);
+        await seedDatabase(false); // force is strictly false to preserve data integrity
         console.log('Demo clinic data seeded successfully.');
+      } else {
+        console.log(`Persistent clinic database active with ${userCount} existing staff accounts. Preserving all records.`);
       }
     } catch (err) {
       console.error('Database initialization failed:', err.message);

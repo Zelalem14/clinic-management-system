@@ -48,6 +48,10 @@ const Patient = sequelize.define('Patient', {
     type: DataTypes.DATEONLY,
     defaultValue: DataTypes.NOW
   },
+  last_card_fee_date: {
+    type: DataTypes.DATE,
+    allowNull: true
+  },
   allergies: {
     type: DataTypes.TEXT,
     allowNull: true

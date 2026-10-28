@@ -320,7 +320,10 @@ export const PatientRegistration = () => {
           {/* Pricing Summary Table */}
           <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2 text-sm">
             <div className="flex justify-between text-slate-600">
-              <span>Patient Digital File & Card Registration Fee:</span>
+              <span className="flex items-center gap-1.5">
+                <span>Patient Digital File & Card Registration Fee:</span>
+                <span className="text-[11px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-medium">Valid for 10 Days</span>
+              </span>
               <span className="font-semibold text-slate-900">{fees.cardFee.toFixed(2)} ETB</span>
             </div>
             <div className="flex justify-between text-slate-600">
@@ -330,6 +333,10 @@ export const PatientRegistration = () => {
             <div className="pt-2 border-t border-slate-200 flex justify-between text-base font-bold text-slate-900">
               <span>Total Registration Amount Due:</span>
               <span className="text-brand-700">{totalFee.toFixed(2)} ETB</span>
+            </div>
+            <div className="mt-1 pt-2 border-t border-slate-200/60 text-xs text-slate-500 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+              <span>Patient card is valid for 10 days. Follow-up return visits within 10 days are card-fee free (0 ETB).</span>
             </div>
           </div>
 

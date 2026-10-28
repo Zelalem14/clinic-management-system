@@ -55,6 +55,78 @@ const generateReceiptNumber = () => {
   return `REC-${dateStr}-${randomStr}`;
 };
 
+// 10-day Patient Card Fee Expiry & Validation Rule
+const CARD_FEE_VALIDITY_DAYS = 10;
+
+const calculateCardFeeStatus = (patient, cardFeeAmount = 150.00) => {
+  if (!patient) {
+    return {
+      isValid: false,
+      isFree: false,
+      cardFeeWaived: false,
+      daysRemaining: 0,
+      daysSinceLastPayment: null,
+      lastPaymentDate: null,
+      cardFeeAmount,
+      feeToCharge: cardFeeAmount,
+      statusBadge: 'EXPIRED',
+      statusText: 'Card Fee Required (No prior payment)'
+    };
+  }
+
+  const lastDateRaw = patient.last_card_fee_date || patient.registration_date;
+  if (!lastDateRaw) {
+    return {
+      isValid: false,
+      isFree: false,
+      cardFeeWaived: false,
+      daysRemaining: 0,
+      daysSinceLastPayment: null,
+      lastPaymentDate: null,
+      cardFeeAmount,
+      feeToCharge: cardFeeAmount,
+      statusBadge: 'EXPIRED',
+      statusText: 'Card Fee Required (No prior payment)'
+    };
+  }
+
+  const lastDate = new Date(lastDateRaw);
+  const now = new Date();
+  const diffMs = now.getTime() - lastDate.getTime();
+  const diffDays = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
+
+  if (diffDays <= CARD_FEE_VALIDITY_DAYS) {
+    const daysRemaining = Math.max(0, CARD_FEE_VALIDITY_DAYS - diffDays);
+    return {
+      isValid: true,
+      isFree: true,
+      cardFeeWaived: true,
+      daysRemaining,
+      daysSinceLastPayment: diffDays,
+      lastPaymentDate: lastDateRaw,
+      cardFeeAmount,
+      feeToCharge: 0.00,
+      statusBadge: 'VALID',
+      statusText: `Valid (${daysRemaining} day${daysRemaining === 1 ? '' : 's'} remaining - Card fee waived / Free follow-up)`
+    };
+  } else {
+    const daysExpired = diffDays - CARD_FEE_VALIDITY_DAYS;
+    return {
+      isValid: false,
+      isFree: false,
+      cardFeeWaived: false,
+      daysRemaining: 0,
+      daysSinceLastPayment: diffDays,
+      daysExpired,
+      lastPaymentDate: lastDateRaw,
+      cardFeeAmount,
+      feeToCharge: cardFeeAmount,
+      statusBadge: 'EXPIRED',
+      statusText: `Card Fee Expired (${daysExpired} day${daysExpired === 1 ? '' : 's'} ago - 150 ETB card renewal required)`
+    };
+  }
+};
+
 const createPatient = async (req, res, next) => {
   const t = await sequelize.transaction();
   try {
@@ -127,6 +199,7 @@ const createPatient = async (req, res, next) => {
       emergency_contact: emergency_contact || null,
       consultation_type,
       registration_date: new Date(),
+      last_card_fee_date: new Date(),
       allergies: allergies || null,
       medical_history: medical_history || null,
       current_medications: current_medications || null,
@@ -369,9 +442,44 @@ const getPatientById = async (req, res, next) => {
       });
     }
 
+    const cardFeeStatus = calculateCardFeeStatus(patient);
+
     res.json({
       success: true,
-      patient
+      patient: {
+        ...patient.toJSON(),
+        card_fee_status: cardFeeStatus
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getCardFeeStatus = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const patient = await Patient.findByPk(id);
+
+    if (!patient) {
+      return res.status(404).json({
+        success: false,
+        message: 'Patient not found'
+      });
+    }
+
+    const cardService = await Service.findOne({
+      where: { category: SERVICE_CATEGORIES.CARD_REGISTRATION, is_active: true }
+    });
+    const cardFeeAmount = cardService ? parseFloat(cardService.price) : 150.00;
+
+    const status = calculateCardFeeStatus(patient, cardFeeAmount);
+
+    res.json({
+      success: true,
+      card_number: patient.card_number,
+      full_name: patient.full_name,
+      status
     });
   } catch (error) {
     next(error);
@@ -501,5 +609,7 @@ module.exports = {
   getPatientById,
   updatePatient,
   getMedicalHistory,
-  generateCardNumber
+  generateCardNumber,
+  getCardFeeStatus,
+  calculateCardFeeStatus
 };

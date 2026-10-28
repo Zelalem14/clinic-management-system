@@ -112,8 +112,71 @@ const logout = async (req, res, next) => {
   }
 };
 
+const changePassword = async (req, res, next) => {
+  try {
+    const { current_password, new_password, confirm_password } = req.body;
+
+    if (!current_password || !new_password || !confirm_password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide current password, new password, and confirm password.'
+      });
+    }
+
+    if (new_password !== confirm_password) {
+      return res.status(400).json({
+        success: false,
+        message: 'New password and confirmation do not match.'
+      });
+    }
+
+    if (new_password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'New password must be at least 6 characters long.'
+      });
+    }
+
+    const user = await User.findByPk(req.user.id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User account not found.'
+      });
+    }
+
+    const isMatch = await user.comparePassword(current_password);
+    if (!isMatch) {
+      return res.status(400).json({
+        success: false,
+        message: 'Current password is incorrect.'
+      });
+    }
+
+    user.password = new_password;
+    await user.save();
+
+    await logAudit({
+      userId: user.id,
+      action: 'PASSWORD_CHANGED',
+      entity: 'User',
+      entityId: user.id,
+      details: 'User updated account password',
+      ipAddress: req.ip
+    });
+
+    res.json({
+      success: true,
+      message: 'Password changed successfully.'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   login,
   getMe,
-  logout
+  logout,
+  changePassword
 };

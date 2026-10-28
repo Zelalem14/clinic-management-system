@@ -38,7 +38,8 @@ export const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
           { to: '/reception/register', label: 'Register Patient', icon: UserPlus },
           { to: '/reception/patients', label: 'Patients List', icon: Users },
           { to: '/reception/payments', label: 'Collect Payments', icon: CreditCard },
-          { to: '/reception/services', label: 'Service Prices', icon: Tag }
+          { to: '/reception/services', label: 'Service Prices', icon: Tag },
+          { to: '/reception/reports', label: 'Revenue & Reports', icon: FileSpreadsheet }
         ]
       });
     }
@@ -52,7 +53,8 @@ export const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
           { to: '/doctor/queue', label: 'Waiting Patients', icon: Stethoscope },
           { to: '/doctor/patients', label: 'Patient Records', icon: Users },
           { to: '/doctor/results', label: 'Lab Test Results', icon: FileCheck2 },
-          { to: '/doctor/appointments', label: 'Follow-up Visits', icon: Calendar }
+          { to: '/doctor/appointments', label: 'Follow-up Visits', icon: Calendar },
+          { to: '/doctor/reports', label: 'Clinical Reports', icon: FileSpreadsheet }
         ]
       });
     }
@@ -63,7 +65,8 @@ export const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
         title: 'Laboratory',
         items: [
           { to: '/laboratory', label: 'Laboratory Home', icon: LayoutDashboard },
-          { to: '/laboratory/requests', label: 'Lab Tests Queue', icon: TestTubes }
+          { to: '/laboratory/requests', label: 'Lab Tests Queue', icon: TestTubes },
+          { to: '/laboratory/reports', label: 'Lab Analytics', icon: FileSpreadsheet }
         ]
       });
     }
@@ -76,7 +79,7 @@ export const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
           { to: '/admin', label: 'Admin Dashboard', icon: LayoutDashboard },
           { to: '/admin/users', label: 'Staff Members', icon: ShieldCheck },
           { to: '/admin/services', label: 'Service Prices', icon: Tag },
-          { to: '/admin/reports', label: 'Revenue Reports', icon: FileSpreadsheet },
+          { to: '/admin/reports', label: 'Executive Reports', icon: FileSpreadsheet },
           { to: '/admin/settings', label: 'Clinic Information', icon: Settings }
         ]
       });
