@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import Navbar from './components/common/Navbar';
 import Sidebar from './components/common/Sidebar';
+import ChangePasswordModal from './components/common/ChangePasswordModal';
 
 // Pages
 import LoginPage from './pages/LoginPage';
@@ -39,18 +40,36 @@ import AuditLogs from './pages/admin/AuditLogs';
 // App Layout with Navbar & Sidebar
 const AppLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
-      <Navbar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+      <Navbar 
+        sidebarOpen={sidebarOpen} 
+        setSidebarOpen={setSidebarOpen} 
+        onOpenPasswordModal={() => setPasswordModalOpen(true)}
+      />
       <div className="flex-1 flex">
-        <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
-        <main className="flex-1 lg:pl-64 p-4 sm:p-6 lg:p-8 overflow-x-hidden">
+        <Sidebar 
+          sidebarOpen={sidebarOpen} 
+          setSidebarOpen={setSidebarOpen} 
+          onOpenPasswordModal={() => {
+            setSidebarOpen(false);
+            setPasswordModalOpen(true);
+          }}
+        />
+        <main className="flex-1 lg:pl-64 p-3 sm:p-6 lg:p-8 overflow-x-hidden">
           <div className="max-w-7xl mx-auto">
             <Outlet />
           </div>
         </main>
       </div>
+
+      {/* Global Change Password Modal */}
+      <ChangePasswordModal
+        isOpen={passwordModalOpen}
+        onClose={() => setPasswordModalOpen(false)}
+      />
     </div>
   );
 };

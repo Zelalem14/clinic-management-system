@@ -67,29 +67,31 @@ export const DoctorReports = () => {
       {/* Header & Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-5">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
-            <Stethoscope className="w-7 h-7 text-emerald-600" />
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+            <Stethoscope className="w-6 h-6 sm:w-7 sm:h-7 text-emerald-600 shrink-0" />
             <span>Doctor Weekly Clinical Report</span>
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
             Weekly patient consultation volume and disease breakdown categorized by patient age groups
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {/* Week Navigation */}
-          <div className="inline-flex items-center bg-white border border-slate-200 rounded-xl p-1 shadow-xs">
+          <div className="inline-flex items-center bg-white border border-slate-200 rounded-xl p-1 shadow-2xs">
             <button
+              type="button"
               onClick={() => setWeekOffset(prev => prev - 1)}
               className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
               title="Previous Week"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <span className="text-xs font-semibold px-2.5 text-slate-700 min-w-28 text-center">
+            <span className="text-xs font-semibold px-2 sm:px-2.5 text-slate-700 min-w-24 sm:min-w-28 text-center">
               {weekOffset === 0 ? 'Current Week' : weekOffset === -1 ? 'Last Week' : `${Math.abs(weekOffset)} wks ago`}
             </span>
             <button
+              type="button"
               onClick={() => setWeekOffset(prev => prev + 1)}
               disabled={weekOffset >= 0}
               className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors disabled:opacity-30 disabled:hover:bg-transparent"
@@ -100,16 +102,18 @@ export const DoctorReports = () => {
           </div>
 
           <button
+            type="button"
             onClick={fetchDoctorReport}
-            className="p-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+            className="p-2 sm:p-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
             title="Refresh Report"
           >
             <RefreshCw className="w-4 h-4" />
           </button>
 
           <button
+            type="button"
             onClick={handlePrint}
-            className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800 transition-colors shadow-sm cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-xl bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800 transition-colors shadow-2xs cursor-pointer"
           >
             <Printer className="w-4 h-4" />
             <span className="hidden sm:inline">Print Report</span>
@@ -131,48 +135,48 @@ export const DoctorReports = () => {
       ) : reportData ? (
         <>
           {/* Week Banner & Doctor Identification */}
-          <div className="bg-gradient-to-r from-emerald-600 to-teal-700 text-white rounded-2xl p-5 shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="bg-gradient-to-r from-emerald-600 to-teal-700 text-white rounded-2xl p-5 sm:p-6 shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
             <div>
               <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/20 text-xs font-semibold mb-2">
                 <Calendar className="w-3.5 h-3.5" />
                 <span>Week: {reportData.week.start_date} to {reportData.week.end_date}</span>
               </div>
-              <h2 className="text-xl font-bold">
+              <h2 className="text-xl sm:text-2xl font-bold">
                 Clinical Activity Summary: {reportData.doctor?.name || 'Assigned Physician'}
               </h2>
-              <p className="text-xs text-emerald-100 mt-0.5">
+              <p className="text-xs text-emerald-100 mt-1 max-w-lg">
                 Official report generated for medical auditing, patient age-demographic mapping, and disease prevalence.
               </p>
             </div>
 
-            <div className="flex gap-4">
-              <div className="bg-white/10 backdrop-blur-xs rounded-xl px-4 py-2.5 border border-white/20 text-center">
-                <div className="text-2xl font-black">{reportData.summary.total_patients_seen}</div>
-                <div className="text-[11px] text-emerald-100 font-medium uppercase tracking-wider">Patients Seen</div>
+            <div className="grid grid-cols-3 gap-2 sm:flex sm:gap-4 w-full md:w-auto">
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 border border-white/20 text-center">
+                <div className="text-lg sm:text-2xl font-black">{reportData.summary.total_patients_seen}</div>
+                <div className="text-[10px] sm:text-[11px] text-emerald-100 font-medium uppercase tracking-wider">Patients</div>
               </div>
-              <div className="bg-white/10 backdrop-blur-xs rounded-xl px-4 py-2.5 border border-white/20 text-center">
-                <div className="text-2xl font-black">{reportData.summary.total_consultations}</div>
-                <div className="text-[11px] text-emerald-100 font-medium uppercase tracking-wider">Consultations</div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 border border-white/20 text-center">
+                <div className="text-lg sm:text-2xl font-black">{reportData.summary.total_consultations}</div>
+                <div className="text-[10px] sm:text-[11px] text-emerald-100 font-medium uppercase tracking-wider">Consults</div>
               </div>
-              <div className="bg-white/10 backdrop-blur-xs rounded-xl px-4 py-2.5 border border-white/20 text-center">
-                <div className="text-2xl font-black">{reportData.summary.total_diagnoses_recorded}</div>
-                <div className="text-[11px] text-emerald-100 font-medium uppercase tracking-wider">Diagnoses</div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 border border-white/20 text-center">
+                <div className="text-lg sm:text-2xl font-black">{reportData.summary.total_diagnoses_recorded}</div>
+                <div className="text-[10px] sm:text-[11px] text-emerald-100 font-medium uppercase tracking-wider">Diagnoses</div>
               </div>
             </div>
           </div>
 
           {/* Daily Patients Seen Trend (Monday - Sunday) */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 flex items-center gap-2">
+          <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs">
+            <h3 className="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-emerald-600" />
               <span>Patients Seen by Day of Week (Weekly Trend)</span>
             </h3>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2.5">
+            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2 sm:gap-2.5">
               {reportData.daily_trend.map((day, idx) => (
                 <div
                   key={idx}
-                  className={`p-3 rounded-xl border text-center transition-all ${
+                  className={`p-2.5 sm:p-3 rounded-xl border text-center transition-all ${
                     day.patients_count > 0 
                       ? 'bg-emerald-50/60 border-emerald-200 text-emerald-900' 
                       : 'bg-slate-50 border-slate-200/80 text-slate-500'
@@ -180,7 +184,7 @@ export const DoctorReports = () => {
                 >
                   <div className="text-xs font-bold text-slate-600">{day.day}</div>
                   <div className="text-[10px] text-slate-400 mb-1">{day.date.slice(5)}</div>
-                  <div className="text-2xl font-black text-slate-900">{day.patients_count}</div>
+                  <div className="text-xl sm:text-2xl font-black text-slate-900">{day.patients_count}</div>
                   <div className="text-[10px] font-semibold text-slate-500">
                     {day.consultations_count} consult{day.consultations_count === 1 ? '' : 's'}
                   </div>
@@ -190,11 +194,11 @@ export const DoctorReports = () => {
           </div>
 
           {/* Disease Breakdown Categorized by Patient Age Groups */}
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-5">
+          <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-2xs space-y-5">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-4">
               <div>
-                <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                  <HeartPulse className="w-5 h-5 text-rose-600" />
+                <h3 className="text-sm sm:text-base font-extrabold text-slate-900 flex items-center gap-2">
+                  <HeartPulse className="w-5 h-5 text-rose-600 shrink-0" />
                   <span>Disease Breakdown Categorized by Patient Age Groups</span>
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">
@@ -203,12 +207,12 @@ export const DoctorReports = () => {
               </div>
 
               {/* Age Filter Selector */}
-              <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl text-xs font-semibold">
+              <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-100 rounded-xl text-xs font-semibold">
                 <button
                   type="button"
                   onClick={() => setSelectedAgeGroup('all')}
-                  className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                    selectedAgeGroup === 'all' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                  className={`px-2.5 sm:px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                    selectedAgeGroup === 'all' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
                   All Groups
@@ -218,89 +222,63 @@ export const DoctorReports = () => {
                     key={grp.key}
                     type="button"
                     onClick={() => setSelectedAgeGroup(grp.key)}
-                    className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                      selectedAgeGroup === grp.key ? 'bg-white text-emerald-800 shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900'
+                    className={`px-2.5 sm:px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                      selectedAgeGroup === grp.key ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
                     }`}
                   >
-                    {grp.label.split(' ')[0]} ({grp.total_diagnoses})
+                    {grp.label} ({grp.total_patients})
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Age Group Breakdown Cards */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            {/* Age Cohorts Display Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {reportData.age_group_breakdown
                 .filter(grp => selectedAgeGroup === 'all' || selectedAgeGroup === grp.key)
-                .map((group) => (
-                  <div key={group.key} className="border border-slate-200 rounded-xl p-4 bg-slate-50/50 space-y-3">
-                    <div className="flex items-center justify-between pb-2 border-b border-slate-200">
-                      <div className="flex items-center gap-2">
-                        <span className="w-3 h-3 rounded-full bg-emerald-500" />
-                        <h4 className="font-bold text-sm text-slate-900">{group.label}</h4>
+                .map((cohort) => (
+                  <div key={cohort.key} className="border border-slate-200 rounded-2xl p-4 sm:p-5 bg-slate-50/50 space-y-4">
+                    <div className="flex items-center justify-between border-b border-slate-200/80 pb-3">
+                      <div>
+                        <div className="text-xs font-bold text-brand-600 uppercase tracking-wider">{cohort.age_range}</div>
+                        <h4 className="text-base font-black text-slate-900">{cohort.label} Cohort</h4>
                       </div>
-                      <span className="text-xs px-2.5 py-0.5 rounded-full bg-slate-200 text-slate-700 font-bold">
-                        {group.total_diagnoses} Recorded Case{group.total_diagnoses === 1 ? '' : 's'}
-                      </span>
+                      <div className="text-right">
+                        <span className="text-xl sm:text-2xl font-black text-slate-900">{cohort.total_patients}</span>
+                        <span className="text-xs text-slate-500 block">patients seen</span>
+                      </div>
                     </div>
 
-                    {group.diseases.length === 0 ? (
+                    {cohort.diseases.length === 0 ? (
                       <div className="py-6 text-center text-xs text-slate-400 italic">
-                        No diseases recorded for this age cohort in the selected week.
+                        No recorded diagnoses for this age cohort this week.
                       </div>
                     ) : (
-                      <div className="space-y-2">
-                        {group.diseases.map((d, dIdx) => (
-                          <div key={dIdx} className="bg-white p-2.5 rounded-lg border border-slate-200/80 text-xs flex flex-col gap-1.5">
-                            <div className="flex items-center justify-between">
-                              <span className="font-bold text-slate-900">
-                                {d.name} {d.code && <span className="font-mono text-slate-400 font-normal">({d.code})</span>}
-                              </span>
-                              <span className="font-extrabold text-emerald-700">
-                                {d.count} patient{d.count === 1 ? '' : 's'} ({d.percentage}%)
-                              </span>
+                      <div className="space-y-2.5">
+                        <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                          Prevalent Diagnoses
+                        </div>
+                        <div className="space-y-2">
+                          {cohort.diseases.map((dis, dIdx) => (
+                            <div key={dIdx} className="bg-white p-3 rounded-xl border border-slate-200/80 shadow-2xs space-y-1.5">
+                              <div className="flex items-center justify-between text-xs">
+                                <span className="font-bold text-slate-800">{dis.disease_name}</span>
+                                <span className="font-black text-slate-900">{dis.case_count} cases ({dis.percentage}%)</span>
+                              </div>
+                              <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                                <div
+                                  className="bg-emerald-500 h-1.5 rounded-full"
+                                  style={{ width: `${Math.min(100, parseFloat(dis.percentage))}%` }}
+                                />
+                              </div>
                             </div>
-                            {/* Visual Progress Bar */}
-                            <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                              <div
-                                className="bg-emerald-500 h-1.5 rounded-full"
-                                style={{ width: `${Math.min(100, Math.max(8, parseFloat(d.percentage)))}%` }}
-                              />
-                            </div>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>
                 ))}
             </div>
-          </div>
-
-          {/* Top Overall Diagnoses for Doctor */}
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
-            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 flex items-center gap-2">
-              <Activity className="w-4 h-4 text-emerald-600" />
-              <span>Overall Most Prevalent Diagnoses this Week</span>
-            </h3>
-
-            {reportData.top_overall_diseases.length === 0 ? (
-              <div className="py-6 text-center text-xs text-slate-400 italic">
-                No diagnoses logged for this week yet.
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-                {reportData.top_overall_diseases.map((item, idx) => (
-                  <div key={idx} className="p-3 rounded-xl border border-slate-200 bg-emerald-50/30">
-                    <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Rank #{idx + 1}</div>
-                    <div className="font-extrabold text-slate-900 text-sm line-clamp-2">{item.name}</div>
-                    <div className="mt-2 flex items-center justify-between text-xs font-semibold text-emerald-800">
-                      <span>Total Cases:</span>
-                      <span className="px-2 py-0.5 rounded-full bg-emerald-100">{item.count}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
         </>
       ) : null}
