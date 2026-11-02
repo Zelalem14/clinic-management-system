@@ -28,6 +28,7 @@ import DoctorReports from './pages/doctor/DoctorReports';
 // Lab Pages
 import LabDashboard from './pages/laboratory/LabDashboard';
 import LabReports from './pages/laboratory/LabReports';
+import LabTemplates from './pages/laboratory/LabTemplates';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -234,6 +235,14 @@ export const App = () => {
               element={
                 <ProtectedRoute allowedRoles={['lab_tech', 'admin', 'doctor']}>
                   <LabDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/laboratory/templates"
+              element={
+                <ProtectedRoute allowedRoles={['lab_tech', 'admin']}>
+                  <LabTemplates />
                 </ProtectedRoute>
               }
             />

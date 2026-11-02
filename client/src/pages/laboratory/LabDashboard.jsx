@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import api from '../../api/client';
 import StatusBadge from '../../components/common/StatusBadge';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
-import Modal from '../../components/common/Modal';
+import SmartResultEntryModal from '../../components/laboratory/SmartResultEntryModal';
+import PrintableLabReportModal from '../../components/laboratory/PrintableLabReportModal';
 import { 
   TestTubes, 
   Search, 
@@ -16,7 +18,11 @@ import {
   Play, 
   Building2,
   Calendar,
-  Activity
+  Activity,
+  FlaskConical,
+  FileEdit,
+  Eye,
+  Sliders
 } from 'lucide-react';
 
 export const LabDashboard = () => {
@@ -25,17 +31,9 @@ export const LabDashboard = () => {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
 
-  // Result Entry Modal State
+  // Smart Result Entry Modal State
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showResultModal, setShowResultModal] = useState(false);
-  const [resultForm, setResultForm] = useState({
-    test_name: '',
-    findings: '',
-    results_data: '',
-    observations: ''
-  });
-  const [isSubmittingResult, setIsSubmittingResult] = useState(false);
-  const [resultError, setResultError] = useState('');
 
   // Printable Report Modal State
   const [reportData, setReportData] = useState(null);
@@ -86,46 +84,18 @@ export const LabDashboard = () => {
 
   const handleOpenResultModal = (req) => {
     setSelectedRequest(req);
-    const testNames = req.items?.map(it => it.service?.service_name).join(', ') || 'Laboratory Examination';
-    setResultForm({
-      test_name: testNames,
-      findings: '',
-      results_data: '',
-      observations: ''
-    });
-    setResultError('');
     setShowResultModal(true);
   };
 
-  const handleSubmitResult = async (e) => {
-    e.preventDefault();
-    if (!resultForm.findings) {
-      setResultError('Please enter clinical findings / test parameter values.');
-      return;
-    }
-
-    setIsSubmittingResult(true);
-    setResultError('');
-
-    try {
-      const res = await api.post('/laboratory/results', {
-        request_id: selectedRequest.id,
-        test_name: resultForm.test_name,
-        findings: resultForm.findings,
-        results_data: resultForm.results_data || resultForm.findings,
-        observations: resultForm.observations,
-        mark_sent_to_doctor: true
+  const handleResultSaved = (savedResult, submissionStatus) => {
+    fetchLabRequests();
+    if (submissionStatus === 'final') {
+      setReportData({
+        ...savedResult,
+        request: selectedRequest,
+        patient: selectedRequest?.patient
       });
-
-      setShowResultModal(false);
-      setReportData(res.data.result);
       setShowReportModal(true);
-
-      fetchLabRequests();
-    } catch (err) {
-      setResultError(err.response?.data?.message || 'Failed to submit test results.');
-    } finally {
-      setIsSubmittingResult(false);
     }
   };
 
@@ -150,58 +120,68 @@ export const LabDashboard = () => {
             <span>Laboratory Diagnostics Workspace</span>
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Track test orders, verify payment approvals before testing, record findings, and transmit results to doctors.
+            Standardized clinical test entry, biological reference auto-flagging, draft saves, and immediate doctor transmission.
           </p>
         </div>
 
-        {/* Workflow Status Filter Tabs */}
-        <div className="flex items-center gap-1.5 bg-slate-100 p-1.5 rounded-xl text-xs font-semibold overflow-x-auto">
-          <button
-            type="button"
-            onClick={() => setStatusFilter('')}
-            className={`px-3 py-1.5 rounded-lg transition-all ${
-              statusFilter === '' ? 'bg-slate-800 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
-            }`}
+        <div className="flex items-center gap-2">
+          <Link
+            to="/laboratory/templates"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-bold rounded-xl border border-purple-200 transition-all shadow-2xs"
           >
-            All Tests
-          </button>
-          <button
-            type="button"
-            onClick={() => setStatusFilter('awaiting_payment')}
-            className={`px-3 py-1.5 rounded-lg transition-all ${
-              statusFilter === 'awaiting_payment' ? 'bg-amber-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            🔒 Waiting for Reception Payment
-          </button>
-          <button
-            type="button"
-            onClick={() => setStatusFilter('payment_approved')}
-            className={`px-3 py-1.5 rounded-lg transition-all ${
-              statusFilter === 'payment_approved' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            ✅ Ready to Test (Paid)
-          </button>
-          <button
-            type="button"
-            onClick={() => setStatusFilter('in_progress')}
-            className={`px-3 py-1.5 rounded-lg transition-all ${
-              statusFilter === 'in_progress' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            In Progress
-          </button>
-          <button
-            type="button"
-            onClick={() => setStatusFilter('sent_to_doctor')}
-            className={`px-3 py-1.5 rounded-lg transition-all ${
-              statusFilter === 'sent_to_doctor' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            Results Sent to Doctor
-          </button>
+            <FlaskConical className="w-4 h-4" />
+            <span>Test Templates & Ranges</span>
+          </Link>
         </div>
+      </div>
+
+      {/* Workflow Status Filter Tabs */}
+      <div className="flex items-center gap-1.5 bg-slate-100 p-1.5 rounded-xl text-xs font-semibold overflow-x-auto">
+        <button
+          type="button"
+          onClick={() => setStatusFilter('')}
+          className={`px-3 py-1.5 rounded-lg transition-all ${
+            statusFilter === '' ? 'bg-slate-800 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          All Tests
+        </button>
+        <button
+          type="button"
+          onClick={() => setStatusFilter('awaiting_payment')}
+          className={`px-3 py-1.5 rounded-lg transition-all ${
+            statusFilter === 'awaiting_payment' ? 'bg-amber-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          🔒 Waiting for Reception Payment
+        </button>
+        <button
+          type="button"
+          onClick={() => setStatusFilter('payment_approved')}
+          className={`px-3 py-1.5 rounded-lg transition-all ${
+            statusFilter === 'payment_approved' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          ✅ Ready to Test (Paid)
+        </button>
+        <button
+          type="button"
+          onClick={() => setStatusFilter('in_progress')}
+          className={`px-3 py-1.5 rounded-lg transition-all ${
+            statusFilter === 'in_progress' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          In Progress / Drafts
+        </button>
+        <button
+          type="button"
+          onClick={() => setStatusFilter('sent_to_doctor')}
+          className={`px-3 py-1.5 rounded-lg transition-all ${
+            statusFilter === 'sent_to_doctor' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          Results Sent to Doctor
+        </button>
       </div>
 
       {/* Reception Approval Notice Banner */}
@@ -277,6 +257,8 @@ export const LabDashboard = () => {
                     const isPaid = r.status !== 'awaiting_payment';
                     const isInProgress = r.status === 'in_progress';
                     const isCompleted = r.status === 'results_ready' || r.status === 'sent_to_doctor' || r.status === 'completed';
+                    const hasDraft = r.results && r.results.length > 0 && r.results[0].status === 'draft';
+                    const hasResult = r.results && r.results.length > 0;
 
                     return (
                       <tr key={r.id} className="hover:bg-slate-50/60 transition-colors">
@@ -302,7 +284,7 @@ export const LabDashboard = () => {
                             {r.items?.map(it => (
                               <div key={it.id} className="text-xs font-medium text-slate-800 flex items-center gap-1.5">
                                 <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
-                                {it.service?.service_name}
+                                <span>{it.service?.service_name}</span>
                               </div>
                             ))}
                           </div>
@@ -321,6 +303,15 @@ export const LabDashboard = () => {
 
                         <td className="px-6 py-4">
                           <StatusBadge status={r.status} />
+
+                          {hasDraft && (
+                            <div className="mt-1.5">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                                <span>📝 Draft Saved</span>
+                              </span>
+                            </div>
+                          )}
+
                           {!isPaid ? (
                             <div className="text-[11px] font-bold text-amber-800 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200 mt-1.5 flex items-center gap-1.5">
                               <Lock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
@@ -334,7 +325,7 @@ export const LabDashboard = () => {
                           )}
                         </td>
 
-                        <td className="px-6 py-4 text-right space-x-2">
+                        <td className="px-6 py-4 text-right space-x-1.5">
                           {!isPaid ? (
                             <button
                               type="button"
@@ -355,23 +346,48 @@ export const LabDashboard = () => {
                               <span>Start Test</span>
                             </button>
                           ) : isInProgress ? (
-                            <button
-                              type="button"
-                              onClick={() => handleOpenResultModal(r)}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer"
-                            >
-                              <FileCheck className="w-3.5 h-3.5" />
-                              <span>Record Results</span>
-                            </button>
+                            <div className="inline-flex items-center gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => handleOpenResultModal(r)}
+                                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold shadow-xs transition-colors cursor-pointer ${
+                                  hasDraft ? 'bg-amber-600 hover:bg-amber-700 text-white' : 'bg-purple-600 hover:bg-purple-700 text-white'
+                                }`}
+                              >
+                                {hasDraft ? <FileEdit className="w-3.5 h-3.5" /> : <FileCheck className="w-3.5 h-3.5" />}
+                                <span>{hasDraft ? 'Resume Draft' : 'Record Results'}</span>
+                              </button>
+                              {hasDraft && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleViewReport(r)}
+                                  className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-medium cursor-pointer"
+                                  title="Preview Draft Report"
+                                >
+                                  <Eye className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                            </div>
                           ) : (
-                            <button
-                              type="button"
-                              onClick={() => handleViewReport(r)}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
-                            >
-                              <Printer className="w-3.5 h-3.5" />
-                              <span>Report</span>
-                            </button>
+                            <div className="inline-flex items-center gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => handleViewReport(r)}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                              >
+                                <Printer className="w-3.5 h-3.5" />
+                                <span>Official Report</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleOpenResultModal(r)}
+                                className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-medium transition-colors cursor-pointer"
+                                title="Edit / Re-submit Results"
+                              >
+                                <FileEdit className="w-3.5 h-3.5" />
+                                <span>Edit</span>
+                              </button>
+                            </div>
                           )}
                         </td>
                       </tr>
@@ -384,160 +400,24 @@ export const LabDashboard = () => {
         )}
       </div>
 
-      {/* Record Results Modal */}
+      {/* Smart Result Entry Modal */}
       {showResultModal && selectedRequest && (
-        <Modal
+        <SmartResultEntryModal
           isOpen={showResultModal}
           onClose={() => setShowResultModal(false)}
-          title="Record Laboratory Findings & Test Results"
-          subtitle={`Patient: ${selectedRequest.patient?.full_name} (${selectedRequest.patient?.card_number})`}
-        >
-          <form onSubmit={handleSubmitResult} className="space-y-4 text-xs">
-            {resultError && (
-              <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
-                <span>{resultError}</span>
-              </div>
-            )}
-
-            <div>
-              <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
-                Test Description
-              </label>
-              <input
-                type="text"
-                value={resultForm.test_name}
-                onChange={(e) => setResultForm({ ...resultForm, test_name: e.target.value })}
-                className="w-full rounded-xl border border-slate-300 p-2 text-xs font-semibold text-slate-900"
-              />
-            </div>
-
-            <div>
-              <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
-                Test Findings / Parameter Values <span className="text-rose-500">*</span>
-              </label>
-              <textarea
-                rows="4"
-                required
-                value={resultForm.findings}
-                onChange={(e) => setResultForm({ ...resultForm, findings: e.target.value })}
-                placeholder="Enter quantitative or qualitative results (e.g. Hemoglobin 13.5 g/dL, Parasitemia: Negative, Blood Glucose: 95 mg/dL)..."
-                className="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-mono text-slate-900"
-              />
-            </div>
-
-            <div>
-              <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
-                Technician Observations / Methodology Notes
-              </label>
-              <textarea
-                rows="2"
-                value={resultForm.observations}
-                onChange={(e) => setResultForm({ ...resultForm, observations: e.target.value })}
-                placeholder="Microscopic sediment, sample quality, test strip lot #, control status..."
-                className="w-full rounded-xl border border-slate-300 p-2.5 text-xs text-slate-800"
-              />
-            </div>
-
-            <div className="p-3 rounded-xl bg-purple-50 border border-purple-200 text-purple-900">
-              <span className="font-bold block">Transmission to Doctor:</span>
-              Submitting finalized results will instantly update the patient's record in the Doctor's Waiting Queue.
-            </div>
-
-            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
-              <button
-                type="button"
-                onClick={() => setShowResultModal(false)}
-                className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-semibold"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmittingResult}
-                className="inline-flex items-center gap-1.5 px-5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-bold shadow-xs cursor-pointer"
-              >
-                <Send className="w-3.5 h-3.5" />
-                <span>{isSubmittingResult ? 'Transmitting...' : 'Submit Results to Doctor'}</span>
-              </button>
-            </div>
-          </form>
-        </Modal>
+          request={selectedRequest}
+          onSuccess={handleResultSaved}
+        />
       )}
 
-      {/* Official Laboratory Report Modal */}
+      {/* Certified Diagnostic Printable Report Modal */}
       {showReportModal && reportData && (
-        <Modal
+        <PrintableLabReportModal
           isOpen={showReportModal}
           onClose={() => setShowReportModal(false)}
-          title="Official Diagnostic Laboratory Report"
-          subtitle={`Report Date: ${new Date(reportData.completed_at || Date.now()).toLocaleDateString()}`}
-        >
-          <div className="space-y-4 printable-card text-xs text-slate-800">
-            {/* Header */}
-            <div className="text-center border-b border-slate-200 pb-3">
-              <div className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-purple-600 text-white mb-1">
-                <TestTubes className="w-5 h-5" />
-              </div>
-              <h3 className="text-base font-extrabold text-slate-900">Tena Specialty Diagnostic Center</h3>
-              <p className="text-[11px] text-slate-500">Department of Pathology & Medical Laboratory (Addis Ababa)</p>
-              <div className="mt-1 font-mono font-bold text-xs text-purple-800">FINAL LABORATORY INVESTIGATION REPORT</div>
-            </div>
-
-            {/* Patient Header */}
-            <div className="grid grid-cols-2 gap-2 text-[11px] p-3 bg-slate-50 rounded-xl border border-slate-200">
-              <div><span className="text-slate-400">Patient:</span> <span className="font-bold text-slate-900">{reportData.patient?.full_name}</span></div>
-              <div><span className="text-slate-400">Card #:</span> <span className="font-mono font-bold">{reportData.patient?.card_number}</span></div>
-              <div><span className="text-slate-400">Age & Sex:</span> <span className="capitalize">{reportData.patient?.age} yrs, {reportData.patient?.sex}</span></div>
-              <div><span className="text-slate-400">Date Completed:</span> <span>{new Date(reportData.completed_at || Date.now()).toLocaleString()}</span></div>
-            </div>
-
-            {/* Test Results Table */}
-            <div className="space-y-3">
-              <div className="font-bold text-sm text-slate-900 border-b border-slate-200 pb-1">
-                Test: {reportData.test_name}
-              </div>
-
-              <div className="p-3 rounded-lg border border-slate-200 bg-white font-mono text-xs whitespace-pre-line text-slate-900">
-                <span className="font-bold font-sans text-slate-700 block mb-1">Findings & Values:</span>
-                {reportData.findings}
-              </div>
-
-              {reportData.observations && (
-                <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100 text-slate-700">
-                  <span className="font-bold block">Observations:</span>
-                  {reportData.observations}
-                </div>
-              )}
-            </div>
-
-            <div className="pt-4 border-t border-slate-200 flex justify-between items-center text-[11px] text-slate-500">
-              <span>Technician Verification: Verified and Signed</span>
-              <span className="font-bold text-emerald-700 uppercase">STATUS: FINAL REPORT</span>
-            </div>
-
-            <div className="flex items-center justify-between pt-3 border-t border-slate-100 no-print">
-              <button
-                type="button"
-                onClick={() => window.print()}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-semibold cursor-pointer"
-              >
-                <Printer className="w-4 h-4" />
-                <span>Print Diagnostic Report</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setShowReportModal(false)}
-                className="px-4 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </Modal>
+          reportData={reportData}
+        />
       )}
-
     </div>
   );
 };

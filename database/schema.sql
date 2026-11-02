@@ -196,9 +196,11 @@ CREATE TABLE IF NOT EXISTS `laboratory_results` (
   `findings` TEXT NULL,
   `results_data` TEXT NULL,
   `observations` TEXT NULL,
-  `status` ENUM('preliminary', 'final') DEFAULT 'final',
-  `completed_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `status` VARCHAR(50) DEFAULT 'final',
+  `completed_at` DATETIME NULL,
   `verified_by` INT NULL,
+  `doctor_comments` TEXT NULL,
+  `doctor_reviewed_at` DATETIME NULL,
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (`request_id`) REFERENCES `procedure_requests`(`id`) ON DELETE CASCADE,
@@ -206,6 +208,22 @@ CREATE TABLE IF NOT EXISTS `laboratory_results` (
   FOREIGN KEY (`patient_id`) REFERENCES `patients`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`technician_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`verified_by`) REFERENCES `users`(`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 11b. Lab Test Templates Table
+CREATE TABLE IF NOT EXISTS `lab_test_templates` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `template_code` VARCHAR(50) NOT NULL UNIQUE,
+  `template_name` VARCHAR(150) NOT NULL,
+  `category` VARCHAR(50) DEFAULT 'laboratory',
+  `specimen_type` VARCHAR(100) DEFAULT 'Venous Blood / Serum',
+  `department` VARCHAR(100) DEFAULT 'Clinical Chemistry & Hematology',
+  `default_observations` TEXT NULL,
+  `parameters` TEXT NOT NULL,
+  `is_active` TINYINT(1) DEFAULT 1,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX `idx_template_code` (`template_code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 12. Prescriptions Table

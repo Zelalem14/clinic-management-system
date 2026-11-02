@@ -1,5 +1,6 @@
 const { sequelize, User, Patient } = require('../models');
 const seedDatabase = require('../database/seeders/seed');
+const seedLabTemplates = require('../database/seeders/seedLabTemplates');
 
 let initPromise = null;
 
@@ -19,6 +20,17 @@ const initDatabase = async () => {
 
       // Sync schema safely without dropping existing tables or data
       await sequelize.sync();
+
+      // Ensure backward-compatible columns exist on laboratory_results
+      try {
+        await sequelize.query('ALTER TABLE laboratory_results ADD COLUMN doctor_comments TEXT;');
+      } catch (e) { /* column exists */ }
+      try {
+        await sequelize.query('ALTER TABLE laboratory_results ADD COLUMN doctor_reviewed_at DATETIME;');
+      } catch (e) { /* column exists */ }
+
+      // Ensure ready-made structured laboratory templates and services exist
+      await seedLabTemplates();
 
       // Check existing accounts and patient counts
       const userCount = await User.count().catch(() => 0);

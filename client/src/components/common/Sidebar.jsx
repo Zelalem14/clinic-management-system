@@ -9,6 +9,7 @@ import {
   Tag,
   Stethoscope,
   TestTubes,
+  FlaskConical,
   FileSpreadsheet,
   Settings,
   ShieldCheck,
@@ -66,6 +67,7 @@ export const Sidebar = ({ sidebarOpen, setSidebarOpen, onOpenPasswordModal }) =>
         items: [
           { to: '/laboratory', label: 'Laboratory Home', icon: LayoutDashboard },
           { to: '/laboratory/requests', label: 'Lab Tests Queue', icon: TestTubes },
+          { to: '/laboratory/templates', label: 'Test Templates', icon: FlaskConical },
           { to: '/laboratory/reports', label: 'Lab Analytics', icon: FileSpreadsheet }
         ]
       });
@@ -79,6 +81,7 @@ export const Sidebar = ({ sidebarOpen, setSidebarOpen, onOpenPasswordModal }) =>
           { to: '/admin', label: 'Admin Dashboard', icon: LayoutDashboard },
           { to: '/admin/users', label: 'Staff Members', icon: ShieldCheck },
           { to: '/admin/services', label: 'Service Prices', icon: Tag },
+          { to: '/laboratory/templates', label: 'Lab Templates', icon: FlaskConical },
           { to: '/admin/reports', label: 'Executive Reports', icon: FileSpreadsheet },
           { to: '/admin/settings', label: 'Clinic Information', icon: Settings }
         ]

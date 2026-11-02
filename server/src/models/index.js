@@ -15,6 +15,7 @@ const PrescriptionItem = require('./PrescriptionItem');
 const Appointment = require('./Appointment');
 const AuditLog = require('./AuditLog');
 const ClinicSetting = require('./ClinicSetting');
+const LabTestTemplate = require('./LabTestTemplate');
 
 // Patient <-> PatientVisit
 Patient.hasMany(PatientVisit, { foreignKey: 'patient_id', as: 'visits' });
@@ -138,5 +139,6 @@ module.exports = {
   PrescriptionItem,
   Appointment,
   AuditLog,
-  ClinicSetting
+  ClinicSetting,
+  LabTestTemplate
 };
