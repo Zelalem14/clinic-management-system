@@ -9,10 +9,13 @@ const dialect = process.env.DB_DIALECT || (process.env.DATABASE_URL ? 'mysql' : 
 let sequelize;
 
 if (process.env.DATABASE_URL) {
-  // Support standard cloud database connection strings (e.g. TiDB Cloud, Aiven, Railway)
+  // Support standard cloud database connection strings (e.g. TiDB Cloud, Aiven, Railway, Render Postgres/MySQL)
   const isSsl = process.env.DB_SSL !== 'false';
-  sequelize = new Sequelize(process.env.DATABASE_URL, {
-    dialect: 'mysql',
+  const dbUrl = process.env.DATABASE_URL;
+  const isPostgres = dbUrl.startsWith('postgres://') || dbUrl.startsWith('postgresql://');
+  
+  sequelize = new Sequelize(dbUrl, {
+    dialect: isPostgres ? 'postgres' : 'mysql',
     logging: process.env.DB_LOGGING === 'true' ? console.log : false,
     dialectOptions: isSsl ? {
       ssl: {
@@ -59,22 +62,35 @@ if (process.env.DATABASE_URL) {
     }
   );
 } else {
-  // SQLite configuration
-  // In serverless environments (Vercel / AWS Lambda), the filesystem is read-only except os.tmpdir() (/tmp)
+  // SQLite configuration with persistent file resolution
   const isServerless = process.env.VERCEL === '1' || !!process.env.AWS_LAMBDA_FUNCTION_NAME || !!process.env.NOW_REGION;
   let storagePath;
 
+  const baseDbDir = path.resolve(__dirname, '../../../database');
+  const baseDbFile = path.join(baseDbDir, 'clinic.sqlite');
+
   if (process.env.DB_STORAGE) {
-    storagePath = process.env.DB_STORAGE;
+    storagePath = path.resolve(process.env.DB_STORAGE);
   } else if (isServerless) {
+    // In serverless environments (e.g. Vercel), only os.tmpdir() is writable
     storagePath = path.join(os.tmpdir(), 'clinic.sqlite');
-  } else {
-    const dbDir = path.join(__dirname, '../../../database');
-    try {
-      if (!fs.existsSync(dbDir)) {
-        fs.mkdirSync(dbDir, { recursive: true });
+
+    // If a pre-seeded clinic.sqlite exists in the repository, seed /tmp with it so existing records are kept
+    if (fs.existsSync(baseDbFile) && !fs.existsSync(storagePath)) {
+      try {
+        fs.copyFileSync(baseDbFile, storagePath);
+        console.log('Seeded /tmp/clinic.sqlite from repository database file.');
+      } catch (copyErr) {
+        console.warn('Could not copy bundled database file to /tmp:', copyErr.message);
       }
-      storagePath = path.join(dbDir, 'clinic.sqlite');
+    }
+  } else {
+    // Local / Persistent Container Environment
+    try {
+      if (!fs.existsSync(baseDbDir)) {
+        fs.mkdirSync(baseDbDir, { recursive: true });
+      }
+      storagePath = baseDbFile;
     } catch (err) {
       console.warn('Could not write to local database directory, falling back to os.tmpdir():', err.message);
       storagePath = path.join(os.tmpdir(), 'clinic.sqlite');

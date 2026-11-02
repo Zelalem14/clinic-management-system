@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import api from '../../api/client';
 import Modal from '../../components/common/Modal';
 import { 
@@ -8,11 +8,16 @@ import {
   CheckCircle2, 
   AlertCircle, 
   Printer, 
-  ArrowRight,
-  Calendar,
-  Phone,
-  User,
-  HeartPulse
+  ArrowRight, 
+  Calendar, 
+  Phone, 
+  User, 
+  HeartPulse,
+  Search,
+  CalendarPlus,
+  ShieldCheck,
+  Clock,
+  Eye
 } from 'lucide-react';
 
 export const PatientRegistration = () => {
@@ -22,6 +27,12 @@ export const PatientRegistration = () => {
   const [fees, setFees] = useState({ cardFee: 150.00, consultFee: 350.00 });
   const [loadingConfig, setLoadingConfig] = useState(true);
   const [doctors, setDoctors] = useState([]);
+
+  // Returning Patient Quick Search
+  const [lookupQuery, setLookupQuery] = useState('');
+  const [isSearchingLookup, setIsSearchingLookup] = useState(false);
+  const [lookupResult, setLookupResult] = useState(null);
+  const [lookupError, setLookupError] = useState('');
 
   // Form Fields
   const [formData, setFormData] = useState({
@@ -45,8 +56,23 @@ export const PatientRegistration = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [existingPatientAlert, setExistingPatientAlert] = useState(null);
   const [successData, setSuccessData] = useState(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  // Return Visit Modal for Existing Patient
+  const [showReturnVisitModal, setShowReturnVisitModal] = useState(false);
+  const [selectedReturningPatient, setSelectedReturningPatient] = useState(null);
+  const [returningCardFeeStatus, setReturningCardFeeStatus] = useState(null);
+  const [returnVisitForm, setReturnVisitForm] = useState({
+    consultation_type: 'Follow-up Consultation',
+    payment_method: 'cash',
+    approve_payment_now: true,
+    transaction_reference: '',
+    notes: ''
+  });
+  const [isSubmittingReturnVisit, setIsSubmittingReturnVisit] = useState(false);
+  const [returnVisitSuccess, setReturnVisitSuccess] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -101,6 +127,67 @@ export const PatientRegistration = () => {
     }
   };
 
+  // Lookup Returning Patient
+  const handleLookupPatient = async (e) => {
+    e.preventDefault();
+    if (!lookupQuery.trim()) return;
+
+    setIsSearchingLookup(true);
+    setLookupError('');
+    setLookupResult(null);
+
+    try {
+      const res = await api.get(`/patients?search=${encodeURIComponent(lookupQuery.trim())}`);
+      const list = res.data.patients || [];
+      if (list.length > 0) {
+        const patient = list[0];
+        // Fetch card fee status
+        const statusRes = await api.get(`/patients/${patient.id}/card-fee-status`);
+        setLookupResult({
+          patient,
+          cardFeeStatus: statusRes.data.cardFeeStatus
+        });
+      } else {
+        setLookupError(`No existing patient found matching "${lookupQuery}". You can register them below as a new patient.`);
+      }
+    } catch (err) {
+      console.error('Failed to lookup patient:', err);
+      setLookupError('Could not connect to database to search patient records.');
+    } finally {
+      setIsSearchingLookup(false);
+    }
+  };
+
+  const openReturnVisit = (patient, cardFeeStatus) => {
+    setSelectedReturningPatient(patient);
+    setReturningCardFeeStatus(cardFeeStatus);
+    setReturnVisitSuccess('');
+    setShowReturnVisitModal(true);
+  };
+
+  const handleCreateReturnVisit = async (e) => {
+    e.preventDefault();
+    if (!selectedReturningPatient) return;
+
+    setIsSubmittingReturnVisit(true);
+    try {
+      const res = await api.post('/visits', {
+        patient_id: selectedReturningPatient.id,
+        ...returnVisitForm
+      });
+
+      setReturnVisitSuccess(`Return visit created successfully! Routed to ${res.data.visit.status === 'waiting_consultation' ? 'Doctor Queue' : 'Payment Queue'}.`);
+      setTimeout(() => {
+        setShowReturnVisitModal(false);
+        navigate('/reception');
+      }, 1500);
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to initiate return visit.');
+    } finally {
+      setIsSubmittingReturnVisit(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.full_name || !formData.phone || !formData.sex) {
@@ -110,13 +197,22 @@ export const PatientRegistration = () => {
 
     setIsSubmitting(true);
     setError('');
+    setExistingPatientAlert(null);
 
     try {
       const response = await api.post('/patients', formData);
       setSuccessData(response.data);
       setShowSuccessModal(true);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to register patient. Please verify details.');
+      if (err.response?.status === 409 && err.response?.data?.patient) {
+        setExistingPatientAlert({
+          patient: err.response.data.patient,
+          cardFeeStatus: err.response.data.cardFeeStatus,
+          message: err.response.data.message
+        });
+      } else {
+        setError(err.response?.data?.message || 'Failed to register patient. Please verify details.');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -129,21 +225,152 @@ export const PatientRegistration = () => {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Title */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 flex items-center gap-2">
             <UserPlus className="w-6 h-6 text-brand-600" />
-            <span>New Patient Registration</span>
+            <span>Patient Intake & Registration</span>
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Enroll a new patient, auto-generate unique card number, and record registration fees in Ethiopian Birr (ETB).
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
+            Enroll a new patient or look up previous registered patients for follow-up visits.
           </p>
         </div>
         <div className="bg-brand-50 border border-brand-200 px-4 py-2 rounded-xl text-center">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-brand-600">Registration Package</span>
+          <span className="text-[11px] font-bold uppercase tracking-wider text-brand-600">New Patient Package</span>
           <div className="text-lg font-extrabold text-brand-900">{totalFee.toFixed(2)} ETB</div>
         </div>
       </div>
+
+      {/* Quick Lookup for Returning / Previously Registered Patients */}
+      <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+            <Search className="w-4 h-4 text-brand-600" />
+            <span>Check if Patient is Already Registered (Returning Patient)</span>
+          </h2>
+          <span className="text-[11px] text-slate-400">Card #, Full Name, or Phone</span>
+        </div>
+
+        <form onSubmit={handleLookupPatient} className="flex gap-2">
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+            <input
+              type="text"
+              value={lookupQuery}
+              onChange={(e) => setLookupQuery(e.target.value)}
+              placeholder="e.g. CLN-2026-0001, Dawit Tadesse, or 0912345678"
+              className="w-full rounded-xl border border-slate-300 pl-9 pr-3 py-2 text-xs sm:text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={isSearchingLookup}
+            className="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs sm:text-sm font-semibold rounded-xl transition-all cursor-pointer whitespace-nowrap disabled:opacity-60"
+          >
+            {isSearchingLookup ? 'Searching...' : 'Find Patient'}
+          </button>
+        </form>
+
+        {lookupError && (
+          <div className="p-3 bg-amber-50 border border-amber-200 text-amber-900 text-xs rounded-xl flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+            <span>{lookupError}</span>
+          </div>
+        )}
+
+        {lookupResult && (
+          <div className="p-4 bg-emerald-50/80 border border-emerald-200 rounded-xl space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                  Patient Found in Permanent Database
+                </span>
+                <h3 className="text-base font-bold text-slate-900 mt-1">
+                  {lookupResult.patient.full_name} ({lookupResult.patient.card_number})
+                </h3>
+                <p className="text-xs text-slate-600">
+                  Phone: {lookupResult.patient.phone} &bull; Registered: {lookupResult.patient.registration_date || 'Permanent'}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => openReturnVisit(lookupResult.patient, lookupResult.cardFeeStatus)}
+                  className="inline-flex items-center gap-1.5 px-3 py-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold rounded-xl shadow-xs cursor-pointer"
+                >
+                  <CalendarPlus className="w-3.5 h-3.5" />
+                  <span>Start Return Visit</span>
+                </button>
+                <Link
+                  to={`/reception/patients?search=${encodeURIComponent(lookupResult.patient.card_number)}`}
+                  className="inline-flex items-center gap-1 px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-semibold rounded-xl cursor-pointer"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                  <span>View File</span>
+                </Link>
+              </div>
+            </div>
+
+            {/* Card Fee Status Notice */}
+            {lookupResult.cardFeeStatus && (
+              <div className="text-xs p-2.5 bg-white/80 rounded-lg border border-emerald-200 text-slate-700 flex items-center justify-between">
+                <span>Card Validity: <strong>{lookupResult.cardFeeStatus.statusText}</strong></span>
+                <span className="font-bold text-brand-700">Fee Due: {lookupResult.cardFeeStatus.feeToCharge.toFixed(2)} ETB</span>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Existing Patient Alert Banner (Shown if user tries to submit an already registered patient) */}
+      {existingPatientAlert && (
+        <div className="p-5 rounded-2xl bg-sky-50 border border-sky-200 text-sky-950 space-y-3">
+          <div className="flex items-start gap-2.5">
+            <CheckCircle2 className="w-5 h-5 text-sky-600 shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <h3 className="font-bold text-sm sm:text-base text-slate-900">
+                Patient Already Recorded in Permanent Database!
+              </h3>
+              <p className="text-xs text-slate-600 mt-0.5">
+                {existingPatientAlert.message}
+              </p>
+            </div>
+          </div>
+
+          <div className="p-3 bg-white rounded-xl border border-sky-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs">
+            <div>
+              <span className="font-bold text-slate-900 block">{existingPatientAlert.patient.full_name}</span>
+              <span className="text-slate-500 font-mono">Card: {existingPatientAlert.patient.card_number} | Phone: {existingPatientAlert.patient.phone}</span>
+            </div>
+            {existingPatientAlert.cardFeeStatus && (
+              <span className={`px-2 py-1 rounded-lg font-bold text-[11px] ${
+                existingPatientAlert.cardFeeStatus.isFree ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+              }`}>
+                {existingPatientAlert.cardFeeStatus.statusBadge}: {existingPatientAlert.cardFeeStatus.statusText}
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 pt-1">
+            <button
+              type="button"
+              onClick={() => openReturnVisit(existingPatientAlert.patient, existingPatientAlert.cardFeeStatus)}
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold rounded-xl shadow-xs cursor-pointer"
+            >
+              <CalendarPlus className="w-3.5 h-3.5" />
+              <span>Initiate Return Visit for this Patient</span>
+            </button>
+            <Link
+              to={`/reception/patients?search=${encodeURIComponent(existingPatientAlert.patient.card_number)}`}
+              className="inline-flex items-center gap-1 px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-semibold rounded-xl cursor-pointer"
+            >
+              <Eye className="w-3.5 h-3.5" />
+              <span>View Full File</span>
+            </Link>
+          </div>
+        </div>
+      )}
 
       {error && (
         <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-sm flex items-center gap-2">
@@ -152,14 +379,14 @@ export const PatientRegistration = () => {
         </div>
       )}
 
-      {/* Registration Form */}
+      {/* New Patient Registration Form */}
       <form onSubmit={handleSubmit} className="space-y-6">
         
         {/* Section 1: Demographics */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
-          <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2 flex items-center gap-2">
+        <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
+          <h2 className="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2 flex items-center gap-2">
             <User className="w-4 h-4 text-brand-600" />
-            <span>1. Patient Demographics</span>
+            <span>1. New Patient Demographics</span>
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -203,13 +430,13 @@ export const PatientRegistration = () => {
                 name="dob"
                 value={formData.dob}
                 onChange={handleChange}
-                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none"
               />
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                Age (Years)
+                Age
               </label>
               <input
                 type="number"
@@ -218,14 +445,14 @@ export const PatientRegistration = () => {
                 max="130"
                 value={formData.age}
                 onChange={handleChange}
-                placeholder="Calculated or manual"
-                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                placeholder="Years"
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none"
               />
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                Phone Number <span className="text-rose-500">*</span>
+                Phone Number (Primary) <span className="text-rose-500">*</span>
               </label>
               <input
                 type="tel"
@@ -233,8 +460,8 @@ export const PatientRegistration = () => {
                 required
                 value={formData.phone}
                 onChange={handleChange}
-                placeholder="+251 91 000 0000"
-                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                placeholder="e.g. +251 91 100 0000"
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 font-mono focus:border-brand-500 focus:outline-none"
               />
             </div>
 
@@ -248,7 +475,7 @@ export const PatientRegistration = () => {
                 value={formData.address}
                 onChange={handleChange}
                 placeholder="e.g. Bole Sub-City, Woreda 03, Addis Ababa"
-                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none"
               />
             </div>
 
@@ -261,142 +488,155 @@ export const PatientRegistration = () => {
                 name="emergency_contact"
                 value={formData.emergency_contact}
                 onChange={handleChange}
-                placeholder="Name, Relationship & Phone"
-                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                placeholder="Name and Phone number"
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none"
               />
             </div>
           </div>
         </div>
 
-        {/* Section 2: Clinical Details */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
-          <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2 flex items-center gap-2">
-            <HeartPulse className="w-4 h-4 text-brand-600" />
-            <span>2. Initial Clinical Information</span>
+        {/* Section 2: Clinical Encounter Details */}
+        <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
+          <h2 className="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2 flex items-center gap-2">
+            <HeartPulse className="w-4 h-4 text-emerald-600" />
+            <span>2. Clinical Intake Details</span>
           </h2>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
-              Consultation Type / Assigned Doctor <span className="text-rose-500">*</span>
-            </label>
-            <select
-              name="doctor_id"
-              value={formData.doctor_id}
-              onChange={(e) => {
-                const docId = e.target.value;
-                const doc = doctors.find(d => String(d.id) === String(docId));
-                setFormData(prev => ({
-                  ...prev,
-                  doctor_id: docId,
-                  consultation_type: doc ? doc.name : 'General Consultation'
-                }));
-              }}
-              required
-              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 bg-white"
-            >
-              {doctors.length === 0 ? (
-                <option value="">No doctors available</option>
-              ) : (
-                doctors.map((doc) => (
-                  <option key={doc.id} value={doc.id}>
-                    {doc.name} (Doctor Consultation)
-                  </option>
-                ))
-              )}
-            </select>
-            <p className="text-[11px] text-slate-500 mt-1">
-              Selecting the doctor automatically assigns the patient to their consultation queue upon payment approval.
-            </p>
-          </div>
-        </div>
-
-        {/* Section 3: Fees & Payment Approval in ETB */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
-          <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2 flex items-center gap-2">
-            <CreditCard className="w-4 h-4 text-brand-600" />
-            <span>3. Fee Breakdown & Payment Approval (Ethiopian Birr - ETB)</span>
-          </h2>
-
-          {/* Pricing Summary Table */}
-          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2 text-sm">
-            <div className="flex justify-between text-slate-600">
-              <span className="flex items-center gap-1.5">
-                <span>Patient Digital File & Card Registration Fee:</span>
-                <span className="text-[11px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-medium">Valid for 10 Days</span>
-              </span>
-              <span className="font-semibold text-slate-900">{fees.cardFee.toFixed(2)} ETB</span>
-            </div>
-            <div className="flex justify-between text-slate-600">
-              <span>Doctor Consultation Fee ({formData.consultation_type}):</span>
-              <span className="font-semibold text-slate-900">{fees.consultFee.toFixed(2)} ETB</span>
-            </div>
-            <div className="pt-2 border-t border-slate-200 flex justify-between text-base font-bold text-slate-900">
-              <span>Total Registration Amount Due:</span>
-              <span className="text-brand-700">{totalFee.toFixed(2)} ETB</span>
-            </div>
-            <div className="mt-1 pt-2 border-t border-slate-200/60 text-xs text-slate-500 flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-              <span>Patient card is valid for 10 days. Follow-up return visits within 10 days are card-fee free (0 ETB).</span>
-            </div>
-          </div>
-
-          <div className="space-y-3 pt-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                Paid By: <span className="text-rose-500">*</span>
+              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                Assigned Medical Doctor
               </label>
-              <div className="grid grid-cols-3 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setFormData(prev => ({ ...prev, payment_method: 'cash' }))}
-                  className={`p-3 rounded-xl border text-center transition-all cursor-pointer font-bold text-xs ${
-                    formData.payment_method === 'cash'
-                      ? 'bg-emerald-50 border-emerald-500 text-emerald-800 shadow-sm ring-2 ring-emerald-500/20'
-                      : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300'
-                  }`}
-                >
-                  <div className="text-xl mb-1">💵</div>
-                  <div>Cash</div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setFormData(prev => ({ ...prev, payment_method: 'telebirr' }))}
-                  className={`p-3 rounded-xl border text-center transition-all cursor-pointer font-bold text-xs ${
-                    formData.payment_method === 'telebirr'
-                      ? 'bg-sky-50 border-sky-500 text-sky-800 shadow-sm ring-2 ring-sky-500/20'
-                      : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300'
-                  }`}
-                >
-                  <div className="text-xl mb-1">📱</div>
-                  <div>Telebirr</div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setFormData(prev => ({ ...prev, payment_method: 'bank_transfer' }))}
-                  className={`p-3 rounded-xl border text-center transition-all cursor-pointer font-bold text-xs ${
-                    formData.payment_method === 'bank_transfer'
-                      ? 'bg-purple-50 border-purple-500 text-purple-800 shadow-sm ring-2 ring-purple-500/20'
-                      : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300'
-                  }`}
-                >
-                  <div className="text-xl mb-1">🏦</div>
-                  <div>Bank</div>
-                </button>
-              </div>
+              <select
+                name="doctor_id"
+                value={formData.doctor_id}
+                onChange={handleChange}
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none bg-white"
+              >
+                {doctors.map(doc => (
+                  <option key={doc.id} value={doc.id}>
+                    {doc.name} (General Practitioner)
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                Writing / Note (e.g. Telebirr code, Bank slip number, or cash handed at counter)
+                Consultation Service Category
+              </label>
+              <select
+                name="consultation_type"
+                value={formData.consultation_type}
+                onChange={handleChange}
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none bg-white"
+              >
+                <option value="General Consultation">General Medical Consultation</option>
+                <option value="Specialist Physician">Specialist Physician Consultation</option>
+                <option value="Emergency Walk-in">Emergency Walk-in / Triage</option>
+                <option value="Pediatric Consultation">Pediatric Consultation</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-rose-700 uppercase tracking-wider mb-1">
+                Known Drug Allergies
+              </label>
+              <input
+                type="text"
+                name="allergies"
+                value={formData.allergies}
+                onChange={handleChange}
+                placeholder="e.g. Penicillin, Sulfa, Aspirin (or leave blank if None)"
+                className="w-full rounded-xl border border-rose-300 px-3 py-2 text-sm text-rose-900 placeholder:text-rose-300 focus:border-rose-500 focus:outline-none bg-rose-50/20"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                Chronic Medical Conditions
+              </label>
+              <input
+                type="text"
+                name="medical_history"
+                value={formData.medical_history}
+                onChange={handleChange}
+                placeholder="e.g. Hypertension, Diabetes, Asthma"
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none"
+              />
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                Presenting Symptoms / Reception Notes
+              </label>
+              <textarea
+                name="notes"
+                rows="2"
+                value={formData.notes}
+                onChange={handleChange}
+                placeholder="Describe chief complaint or reason for visit..."
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Section 3: Billing & Immediate Payment Verification */}
+        <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
+          <h2 className="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2 flex items-center gap-2">
+            <CreditCard className="w-4 h-4 text-amber-600" />
+            <span>3. Ethiopian Birr (ETB) Registration Fee Schedule</span>
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="p-3 rounded-xl border border-slate-200 bg-slate-50">
+              <span className="text-[11px] font-semibold text-slate-500 block">Digital Card Registration Fee</span>
+              <span className="text-base font-bold text-slate-900 mt-0.5 block">{fees.cardFee.toFixed(2)} ETB</span>
+              <span className="text-[10px] text-emerald-700 font-medium">Valid for 10 days of free follow-ups</span>
+            </div>
+
+            <div className="p-3 rounded-xl border border-slate-200 bg-slate-50">
+              <span className="text-[11px] font-semibold text-slate-500 block">Doctor Consultation Fee</span>
+              <span className="text-base font-bold text-slate-900 mt-0.5 block">{fees.consultFee.toFixed(2)} ETB</span>
+              <span className="text-[10px] text-slate-400">General Physician Clinical Encounter</span>
+            </div>
+
+            <div className="p-3 rounded-xl border border-brand-200 bg-brand-50/60">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-brand-700 block">Total Due</span>
+              <span className="text-xl font-extrabold text-brand-900 mt-0.5 block">{totalFee.toFixed(2)} ETB</span>
+              <span className="text-[10px] text-brand-600 font-semibold">Includes Official Receipt & Card</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                Payment Channel
+              </label>
+              <select
+                name="payment_method"
+                value={formData.payment_method}
+                onChange={handleChange}
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none bg-white"
+              >
+                <option value="cash">Cash (Direct Counter)</option>
+                <option value="telebirr">Telebirr Digital</option>
+                <option value="bank_transfer">Commercial Bank of Ethiopia (CBE)</option>
+                <option value="card">Point of Sale (POS Card)</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                Transaction Reference / Slip #
               </label>
               <input
                 type="text"
                 name="transaction_reference"
                 value={formData.transaction_reference}
                 onChange={handleChange}
-                placeholder="Optional payment reference or note..."
+                placeholder="e.g. Telebirr SMS TXN ID or Bank Ref (optional)"
                 className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none"
               />
             </div>
@@ -410,12 +650,12 @@ export const PatientRegistration = () => {
               name="approve_payment_now"
               checked={formData.approve_payment_now}
               onChange={handleChange}
-              className="mt-1 h-4 w-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300"
+              className="mt-1 h-4 w-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300 cursor-pointer"
             />
             <label htmlFor="approve_payment_now" className="text-xs text-slate-700 leading-relaxed cursor-pointer">
               <span className="font-bold text-slate-900 block">Confirm Receipt & Approve Payment Immediately</span>
-              Check this box only if the {totalFee.toFixed(2)} ETB fee has been physically received or bank-verified. 
-              Once approved, the patient will immediately appear in Dr. Abebe Kebede's Waiting Queue.
+              Check this box if the {totalFee.toFixed(2)} ETB fee has been received. 
+              Once approved, the patient will immediately appear in the Doctor's Waiting Queue.
             </label>
           </div>
         </div>
@@ -425,7 +665,7 @@ export const PatientRegistration = () => {
           <button
             type="button"
             onClick={() => navigate('/reception')}
-            className="px-5 py-2.5 rounded-xl border border-slate-300 text-sm font-semibold text-slate-700 hover:bg-slate-100 transition-colors"
+            className="px-5 py-2.5 rounded-xl border border-slate-300 text-sm font-semibold text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
           >
             Cancel
           </button>
@@ -441,6 +681,127 @@ export const PatientRegistration = () => {
 
       </form>
 
+      {/* Return Visit Modal (When returning patient is selected) */}
+      {showReturnVisitModal && selectedReturningPatient && (
+        <Modal
+          isOpen={showReturnVisitModal}
+          onClose={() => setShowReturnVisitModal(false)}
+          title={`Initiate Return Visit: ${selectedReturningPatient.full_name}`}
+          subtitle={`Permanent Card Number: ${selectedReturningPatient.card_number}`}
+        >
+          <form onSubmit={handleCreateReturnVisit} className="space-y-4 text-sm">
+            {returnVisitSuccess && (
+              <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-xl flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>{returnVisitSuccess}</span>
+              </div>
+            )}
+
+            {/* 10-Day Fee Breakdown */}
+            {returningCardFeeStatus && (
+              <div className={`p-3.5 rounded-xl border text-xs space-y-1.5 ${
+                returningCardFeeStatus.isFree ? 'bg-emerald-50 border-emerald-200 text-emerald-950' : 'bg-amber-50 border-amber-200 text-amber-950'
+              }`}>
+                <div className="flex items-center justify-between font-bold">
+                  <span>Card Fee Status (10-Day Policy):</span>
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                    returningCardFeeStatus.isFree ? 'bg-emerald-200/80 text-emerald-900' : 'bg-amber-200/80 text-amber-900'
+                  }`}>
+                    {returningCardFeeStatus.statusBadge}
+                  </span>
+                </div>
+                <div className="text-[11px] font-medium">
+                  {returningCardFeeStatus.statusText}
+                </div>
+                <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between font-bold text-slate-900">
+                  <span>Total Due for Return Visit:</span>
+                  <span className="text-sm font-extrabold text-brand-700">
+                    {(350.00 + returningCardFeeStatus.feeToCharge).toFixed(2)} ETB
+                  </span>
+                </div>
+              </div>
+            )}
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                Consultation Type
+              </label>
+              <select
+                value={returnVisitForm.consultation_type}
+                onChange={(e) => setReturnVisitForm({ ...returnVisitForm, consultation_type: e.target.value })}
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm bg-white"
+              >
+                <option value="Follow-up Consultation">Follow-up Consultation</option>
+                <option value="General Doctor Consultation">General Doctor Consultation</option>
+                <option value="Specialist Physician">Specialist Physician</option>
+                <option value="Emergency Walk-in">Emergency Walk-in</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                Payment Channel
+              </label>
+              <select
+                value={returnVisitForm.payment_method}
+                onChange={(e) => setReturnVisitForm({ ...returnVisitForm, payment_method: e.target.value })}
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm bg-white"
+              >
+                <option value="cash">Cash (Direct Counter)</option>
+                <option value="telebirr">Telebirr Digital</option>
+                <option value="bank_transfer">Commercial Bank of Ethiopia (CBE)</option>
+                <option value="card">Point of Sale (Card)</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                Chief Complaint / Visit Notes
+              </label>
+              <textarea
+                rows="2"
+                value={returnVisitForm.notes}
+                onChange={(e) => setReturnVisitForm({ ...returnVisitForm, notes: e.target.value })}
+                placeholder="Reason for returning visit..."
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+              />
+            </div>
+
+            <div className="p-3 rounded-xl border border-brand-200 bg-brand-50/50 flex items-start gap-2.5">
+              <input
+                type="checkbox"
+                id="approve_return_now"
+                checked={returnVisitForm.approve_payment_now}
+                onChange={(e) => setReturnVisitForm({ ...returnVisitForm, approve_payment_now: e.target.checked })}
+                className="mt-0.5 h-4 w-4 rounded text-brand-600 focus:ring-brand-500"
+              />
+              <label htmlFor="approve_return_now" className="text-xs text-slate-700 cursor-pointer">
+                <span className="font-bold text-slate-900 block">Approve Payment Immediately</span>
+                Route patient directly to Doctor's Waiting Queue.
+              </label>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setShowReturnVisitModal(false)}
+                className="px-4 py-2 border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-100 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmittingReturnVisit}
+                className="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-semibold transition-all disabled:opacity-60 cursor-pointer flex items-center gap-1.5"
+              >
+                <CalendarPlus className="w-4 h-4" />
+                <span>{isSubmittingReturnVisit ? 'Saving...' : 'Register Return Visit'}</span>
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
       {/* Success Modal */}
       {showSuccessModal && successData && (
         <Modal
@@ -450,18 +811,18 @@ export const PatientRegistration = () => {
             navigate('/reception');
           }}
           title="Patient Registered Successfully"
-          subtitle="Official patient file and card generated"
+          subtitle="Official patient file and permanent card generated"
         >
           <div className="space-y-4 printable-card">
             <div className="text-center p-6 bg-emerald-50 rounded-2xl border border-emerald-200">
               <CheckCircle2 className="w-12 h-12 text-emerald-600 mx-auto mb-2" />
               <h3 className="text-lg font-bold text-emerald-950">Registration Complete</h3>
               <p className="text-xs text-emerald-800 mt-1">
-                Patient recorded at Tena Specialty Clinic, Addis Ababa.
+                Patient recorded permanently at Tena Specialty Clinic, Addis Ababa.
               </p>
               
               <div className="mt-4 inline-block bg-white px-6 py-3 rounded-xl border-2 border-brand-500 shadow-sm">
-                <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Patient Card Number</div>
+                <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Permanent Card Number</div>
                 <div className="text-2xl font-mono font-extrabold text-brand-700">
                   {successData.patient.card_number}
                 </div>
@@ -476,7 +837,7 @@ export const PatientRegistration = () => {
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">Phone:</span>
-                <span className="font-semibold text-slate-900">{successData.patient.phone}</span>
+                <span className="font-semibold text-slate-900 font-mono">{successData.patient.phone}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">Receipt Number:</span>
@@ -516,7 +877,7 @@ export const PatientRegistration = () => {
                   setShowSuccessModal(false);
                   navigate('/reception');
                 }}
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold rounded-lg transition-all"
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold rounded-lg transition-all cursor-pointer"
               >
                 <span>Return to Reception</span>
                 <ArrowRight className="w-3.5 h-3.5" />

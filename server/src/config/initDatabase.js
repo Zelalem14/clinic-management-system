@@ -1,11 +1,11 @@
-const { sequelize, User } = require('../models');
+const { sequelize, User, Patient } = require('../models');
 const seedDatabase = require('../database/seeders/seed');
 
 let initPromise = null;
 
 /**
- * Initializes and syncs database tables, and seeds initial Ethiopian demo accounts
- * if the database is newly initialized. Idempotent across requests.
+ * Initializes and syncs database tables, preserving all permanent patient records
+ * and staff user accounts. Idempotent across requests.
  */
 const initDatabase = async () => {
   if (initPromise) {
@@ -17,21 +17,22 @@ const initDatabase = async () => {
       await sequelize.authenticate();
       console.log(`Database connected successfully using '${sequelize.getDialect()}' dialect.`);
 
-      // Sync schema without dropping data
+      // Sync schema safely without dropping existing tables or data
       await sequelize.sync();
 
-      // Check if user accounts exist (Staff persistence guard)
+      // Check existing accounts and patient counts
       const userCount = await User.count().catch(() => 0);
-      if (userCount === 0) {
-        console.log(`Initial clinic seeding required (empty database: ${userCount} users). Initializing default demo data...`);
-        await seedDatabase(false); // force is strictly false to preserve data integrity
+      const patientCount = await Patient.count().catch(() => 0);
+
+      if (userCount === 0 && patientCount === 0) {
+        console.log(`Initial clinic setup: empty database (0 users, 0 patients). Seeding initial demo data safely...`);
+        await seedDatabase(false); // force: false strictly preserves all schema and never drops tables
         console.log('Demo clinic data seeded successfully.');
       } else {
-        console.log(`Persistent clinic database active with ${userCount} existing staff accounts. Preserving all records.`);
+        console.log(`Persistent clinic database active: ${userCount} staff accounts and ${patientCount} registered patients safely preserved.`);
       }
     } catch (err) {
       console.error('Database initialization failed:', err.message);
-      // Reset so next request can retry if it was a transient error
       initPromise = null;
       throw err;
     }

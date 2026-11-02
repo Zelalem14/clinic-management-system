@@ -19,10 +19,10 @@ const {
 } = require('../../models');
 const { ROLES, VISIT_STATUS, REQUEST_STATUS, PAYMENT_STATUS, SERVICE_CATEGORIES } = require('../../config/constants');
 
-const seedDatabase = async (force = true) => {
+const seedDatabase = async (force = false) => {
   try {
     if (force) {
-      console.log('Synchronizing database models with force: true...');
+      console.log('Synchronizing database models with force: true (OVERWRITING EXISTING TABLES)...');
       await sequelize.sync({ force: true });
     } else {
       console.log('Synchronizing database models safely without dropping existing tables...');
@@ -590,11 +590,15 @@ const seedDatabase = async (force = true) => {
   }
 };
 
-// Execute if run directly
+// Execute if run directly from CLI
 if (require.main === module) {
-  seedDatabase()
+  const isForce = process.argv.includes('--force-reset');
+  seedDatabase(isForce)
     .then(() => process.exit(0))
-    .catch(() => process.exit(1));
+    .catch((err) => {
+      console.error(err);
+      process.exit(1);
+    });
 }
 
 module.exports = seedDatabase;

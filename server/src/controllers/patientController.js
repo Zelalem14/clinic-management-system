@@ -168,10 +168,13 @@ const createPatient = async (req, res, next) => {
 
     if (existingPatient) {
       await t.rollback();
+      const cardFeeStatus = calculateCardFeeStatus(existingPatient);
       return res.status(409).json({
         success: false,
-        message: `A patient with the name '${full_name}' and phone number '${phone}' already exists with card number ${existingPatient.card_number}.`,
-        patient: existingPatient
+        message: `Patient '${existingPatient.full_name}' is already recorded in the permanent database with Card #${existingPatient.card_number}.`,
+        patient: existingPatient,
+        cardFeeStatus,
+        isExistingPatient: true
       });
     }
 

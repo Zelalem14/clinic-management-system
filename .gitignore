@@ -17,9 +17,8 @@ build/
 !.env.example
 
 # Databases
-database/*.sqlite
-*.sqlite
 *.sqlite-journal
+# database/clinic.sqlite is tracked so seed records and patient databases persist across deployments
 
 # Logs
 npm-debug.log*
