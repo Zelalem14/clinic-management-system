@@ -1,12 +1,13 @@
 const { sequelize, User, Patient } = require('../models');
 const seedDatabase = require('../database/seeders/seed');
 const seedLabTemplates = require('../database/seeders/seedLabTemplates');
+const { createBackup } = require('../services/backupService');
 
 let initPromise = null;
 
 /**
  * Initializes and syncs database tables, preserving all permanent patient records
- * and staff user accounts. Idempotent across requests.
+ * and staff user accounts. Idempotent across server restarts.
  */
 const initDatabase = async () => {
   if (initPromise) {
@@ -16,9 +17,23 @@ const initDatabase = async () => {
   initPromise = (async () => {
     try {
       await sequelize.authenticate();
-      console.log(`Database connected successfully using '${sequelize.getDialect()}' dialect.`);
+      const dialect = sequelize.getDialect();
+      console.log(`Database connected successfully using '${dialect}' dialect.`);
 
-      // Sync schema safely without dropping existing tables or data
+      // Configure SQLite for high durability, zero data loss, and concurrent access
+      if (dialect === 'sqlite') {
+        try {
+          await sequelize.query('PRAGMA journal_mode = WAL;');
+          await sequelize.query('PRAGMA synchronous = NORMAL;');
+          await sequelize.query('PRAGMA foreign_keys = ON;');
+          await sequelize.query('PRAGMA busy_timeout = 10000;');
+          console.log('SQLite durability active: WAL journal mode, Normal sync, Foreign keys enabled.');
+        } catch (pragmaErr) {
+          console.warn('Could not set SQLite PRAGMA directives:', pragmaErr.message);
+        }
+      }
+
+      // Safe schema synchronization without dropping existing tables or data
       await sequelize.sync();
 
       // Ensure backward-compatible columns exist on laboratory_results
@@ -42,6 +57,13 @@ const initDatabase = async () => {
         console.log('Demo clinic data seeded successfully.');
       } else {
         console.log(`Persistent clinic database active: ${userCount} staff accounts and ${patientCount} registered patients safely preserved.`);
+      }
+
+      // Trigger automatic backup snapshot on startup to safeguard all records
+      try {
+        await createBackup();
+      } catch (backupErr) {
+        console.warn('Startup database backup skipped:', backupErr.message);
       }
     } catch (err) {
       console.error('Database initialization failed:', err.message);

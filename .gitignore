@@ -18,6 +18,11 @@ build/
 
 # Databases
 *.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
+database/backups/clinic-backup-*.sqlite
+database/backups/clinic-dump-20*.json
+!database/backups/clinic-dump-latest.json
 # database/clinic.sqlite is tracked so seed records and patient databases persist across deployments
 
 # Logs

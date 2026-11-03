@@ -30,54 +30,69 @@ const seedDatabase = async (force = false) => {
     }
     console.log('Database synced successfully.');
 
-    // 1. Seed Ethiopian Demo Users
-    console.log('Seeding Ethiopian staff user accounts...');
-    const admin = await User.create({
-      name: 'Hussien Seid (Administrator)',
-      email: 'admin@clinic.com',
-      password: 'Admin@123',
-      role: ROLES.ADMIN,
-      phone: '+251 91 100 0001',
-      is_active: true
+    // 1. Seed Ethiopian Demo Users (Idempotent findOrCreate)
+    console.log('Ensuring Ethiopian staff user accounts exist...');
+    const [admin] = await User.findOrCreate({
+      where: { email: 'admin@clinic.com' },
+      defaults: {
+        name: 'Hussien Seid (Administrator)',
+        email: 'admin@clinic.com',
+        password: 'Admin@123',
+        role: ROLES.ADMIN,
+        phone: '+251 91 100 0001',
+        is_active: true
+      }
     });
 
-    const receptionist = await User.create({
-      name: 'Meron Alemu',
-      email: 'reception@clinic.com',
-      password: 'Recept@123',
-      role: ROLES.RECEPTIONIST,
-      phone: '+251 91 100 0002',
-      is_active: true
+    const [receptionist] = await User.findOrCreate({
+      where: { email: 'reception@clinic.com' },
+      defaults: {
+        name: 'Meron Alemu',
+        email: 'reception@clinic.com',
+        password: 'Recept@123',
+        role: ROLES.RECEPTIONIST,
+        phone: '+251 91 100 0002',
+        is_active: true
+      }
     });
 
-    const doctor = await User.create({
-      name: 'Dr. Abebe Kebede, MD',
-      email: 'doctor@clinic.com',
-      password: 'Doctor@123',
-      role: ROLES.DOCTOR,
-      phone: '+251 91 100 0003',
-      is_active: true
+    const [doctor] = await User.findOrCreate({
+      where: { email: 'doctor@clinic.com' },
+      defaults: {
+        name: 'Dr. Abebe Kebede, MD',
+        email: 'doctor@clinic.com',
+        password: 'Doctor@123',
+        role: ROLES.DOCTOR,
+        phone: '+251 91 100 0003',
+        is_active: true
+      }
     });
 
-    const labTech = await User.create({
-      name: 'Assefa Zegeye, MLS',
-      email: 'lab@clinic.com',
-      password: 'Lab@123',
-      role: ROLES.LAB_TECH,
-      phone: '+251 91 100 0004',
-      is_active: true
+    const [labTech] = await User.findOrCreate({
+      where: { email: 'lab@clinic.com' },
+      defaults: {
+        name: 'Assefa Zegeye, MLS',
+        email: 'lab@clinic.com',
+        password: 'Lab@123',
+        role: ROLES.LAB_TECH,
+        phone: '+251 91 100 0004',
+        is_active: true
+      }
     });
 
     // 2. Seed Clinic Settings in Ethiopian Birr
-    console.log('Seeding clinic configuration (Ethiopian Birr - ETB)...');
-    await ClinicSetting.create({
-      clinic_name: 'Tena Community Specialty Clinic & Diagnostic Center',
-      address: 'Bole Sub-City, Africa Avenue, Addis Ababa, Ethiopia',
-      phone: '+251 11 661 2345',
-      email: 'info@tenaclinic.et',
-      currency_symbol: 'ETB',
-      receipt_footer: 'እናመሰግናለን! Thank you for visiting Tena Specialty Clinic. Wishing you swift recovery!'
-    });
+    console.log('Ensuring clinic configuration exists...');
+    const existingSetting = await ClinicSetting.findOne();
+    if (!existingSetting) {
+      await ClinicSetting.create({
+        clinic_name: 'Tena Community Specialty Clinic & Diagnostic Center',
+        address: 'Bole Sub-City, Africa Avenue, Addis Ababa, Ethiopia',
+        phone: '+251 11 661 2345',
+        email: 'info@tenaclinic.et',
+        currency_symbol: 'ETB',
+        receipt_footer: 'እናመሰግናለን! Thank you for visiting Tena Specialty Clinic. Wishing you swift recovery!'
+      });
+    }
 
     // 3. Seed Services with Ethiopian Birr (ETB) pricing
     console.log('Seeding medical services and standard Ethiopian Birr pricing...');
@@ -183,14 +198,24 @@ const seedDatabase = async (force = false) => {
       }
     ];
 
-    const services = await Service.bulkCreate(servicesData);
     const serviceMap = {};
-    services.forEach(s => {
-      serviceMap[s.service_code] = s;
-    });
+    for (const s of servicesData) {
+      const [record] = await Service.findOrCreate({
+        where: { service_code: s.service_code },
+        defaults: s
+      });
+      serviceMap[s.service_code] = record;
+    }
 
-    // 4. Seed Ethiopian Patients across Real Clinical Stages
-    console.log('Seeding realistic patient journeys with Ethiopian names...');
+    // Check if patients already exist. If yes, preserve them and skip demo patient injection
+    const patientCount = await Patient.count();
+    if (patientCount > 0 && !force) {
+      console.log(`Preserving permanent database: ${patientCount} registered patients already exist. Skipping demo patient injection.`);
+      return true;
+    }
+
+    // 4. Seed Ethiopian Patients across Real Clinical Stages only on fresh setup
+    console.log('Seeding initial realistic patient journeys with Ethiopian names...');
 
     // Patient 1: Dawit Tadesse - Registration + Consultation fee approved (Waiting for Dr. Abebe Kebede)
     const p1 = await Patient.create({

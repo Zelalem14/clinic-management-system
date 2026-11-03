@@ -61,7 +61,46 @@ const updateSettings = async (req, res, next) => {
   }
 };
 
+const getBackups = async (req, res, next) => {
+  try {
+    const { listBackups } = require('../services/backupService');
+    const backups = listBackups();
+    res.json({
+      success: true,
+      backups
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const createManualBackup = async (req, res, next) => {
+  try {
+    const { createBackup } = require('../services/backupService');
+    const backup = await createBackup();
+
+    await logAudit({
+      userId: req.user.id,
+      action: 'DATABASE_BACKUP_CREATED',
+      entity: 'System',
+      entityId: '1',
+      details: { timestamp: backup.timestamp, fileCount: backup.files.length },
+      ipAddress: req.ip
+    });
+
+    res.json({
+      success: true,
+      message: 'Database backup and portable JSON dump created successfully',
+      backup
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getSettings,
-  updateSettings
+  updateSettings,
+  getBackups,
+  createManualBackup
 };

@@ -10,4 +10,8 @@ router.use(authenticate);
 router.get('/', settingController.getSettings);
 router.put('/', authorize([ROLES.ADMIN]), settingController.updateSettings);
 
+// Database Backup & Recovery Endpoints
+router.get('/backups', authorize([ROLES.ADMIN]), settingController.getBackups);
+router.post('/backups', authorize([ROLES.ADMIN]), settingController.createManualBackup);
+
 module.exports = router;
