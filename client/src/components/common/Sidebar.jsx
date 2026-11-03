@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   Calendar,
   FileCheck2,
+  Radiation,
   KeyRound,
   LogOut,
   X
@@ -54,6 +55,7 @@ export const Sidebar = ({ sidebarOpen, setSidebarOpen, onOpenPasswordModal }) =>
           { to: '/doctor/queue', label: 'Waiting Patients', icon: Stethoscope },
           { to: '/doctor/patients', label: 'Patient Records', icon: Users },
           { to: '/doctor/results', label: 'Lab Test Results', icon: FileCheck2 },
+          { to: '/procedures', label: 'Imaging & Procedures', icon: Radiation },
           { to: '/doctor/appointments', label: 'Follow-up Visits', icon: Calendar },
           { to: '/doctor/reports', label: 'Clinical Reports', icon: FileSpreadsheet }
         ]
@@ -67,6 +69,7 @@ export const Sidebar = ({ sidebarOpen, setSidebarOpen, onOpenPasswordModal }) =>
         items: [
           { to: '/laboratory', label: 'Laboratory Home', icon: LayoutDashboard },
           { to: '/laboratory/requests', label: 'Lab Tests Queue', icon: TestTubes },
+          { to: '/procedures', label: 'Imaging & Procedures', icon: Radiation },
           { to: '/laboratory/templates', label: 'Test Templates', icon: FlaskConical },
           { to: '/laboratory/reports', label: 'Lab Analytics', icon: FileSpreadsheet }
         ]
@@ -82,6 +85,7 @@ export const Sidebar = ({ sidebarOpen, setSidebarOpen, onOpenPasswordModal }) =>
           { to: '/admin/users', label: 'Staff Members', icon: ShieldCheck },
           { to: '/admin/services', label: 'Service Prices', icon: Tag },
           { to: '/laboratory/templates', label: 'Lab Templates', icon: FlaskConical },
+          { to: '/procedures', label: 'Imaging & Procedures', icon: Radiation },
           { to: '/admin/reports', label: 'Executive Reports', icon: FileSpreadsheet },
           { to: '/admin/settings', label: 'Clinic Information', icon: Settings }
         ]

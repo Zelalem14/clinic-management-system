@@ -27,11 +27,17 @@ router.get(
   reportController.getReceptionAnalytics
 );
 
-// Laboratory Analytics Report
+// Laboratory Analytics Report & Summary
 router.get(
   '/laboratory-analytics',
   authorize([ROLES.LAB_TECH, ROLES.ADMIN, ROLES.DOCTOR]),
   reportController.getLaboratoryAnalytics
+);
+
+router.get(
+  '/laboratory-summary',
+  authorize([ROLES.LAB_TECH, ROLES.ADMIN, ROLES.DOCTOR]),
+  reportController.getLaboratorySummary
 );
 
 // Revenue alias

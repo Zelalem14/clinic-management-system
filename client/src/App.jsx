@@ -26,9 +26,14 @@ import DoctorLabResults from './pages/doctor/DoctorLabResults';
 import DoctorReports from './pages/doctor/DoctorReports';
 
 // Lab Pages
+import LabHome from './pages/laboratory/LabHome';
+import LabQueue from './pages/laboratory/LabQueue';
 import LabDashboard from './pages/laboratory/LabDashboard';
 import LabReports from './pages/laboratory/LabReports';
 import LabTemplates from './pages/laboratory/LabTemplates';
+
+// Procedures & Imaging
+import ProcedureDashboard from './pages/procedures/ProcedureDashboard';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -226,7 +231,7 @@ export const App = () => {
               path="/laboratory"
               element={
                 <ProtectedRoute allowedRoles={['lab_tech', 'admin', 'doctor']}>
-                  <LabDashboard />
+                  <LabHome />
                 </ProtectedRoute>
               }
             />
@@ -234,7 +239,7 @@ export const App = () => {
               path="/laboratory/requests"
               element={
                 <ProtectedRoute allowedRoles={['lab_tech', 'admin', 'doctor']}>
-                  <LabDashboard />
+                  <LabQueue />
                 </ProtectedRoute>
               }
             />
@@ -251,6 +256,16 @@ export const App = () => {
               element={
                 <ProtectedRoute allowedRoles={['lab_tech', 'admin', 'doctor']}>
                   <LabReports />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Imaging & Clinical Procedures */}
+            <Route
+              path="/procedures"
+              element={
+                <ProtectedRoute allowedRoles={['doctor', 'lab_tech', 'admin']}>
+                  <ProcedureDashboard />
                 </ProtectedRoute>
               }
             />
