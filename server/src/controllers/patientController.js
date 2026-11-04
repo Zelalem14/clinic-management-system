@@ -12,6 +12,7 @@ const {
   LaboratoryResult,
   Prescription,
   PrescriptionItem,
+  Appointment,
   User,
   sequelize
 } = require('../models');
@@ -291,6 +292,15 @@ const createPatient = async (req, res, next) => {
 
     await t.commit();
 
+    // Ensure immediate SQLite WAL checkpoint flush and portable backup snapshot
+    if (sequelize.checkpointDatabase) {
+      await sequelize.checkpointDatabase().catch(() => {});
+    }
+    try {
+      const { createBackup } = require('../services/backupService');
+      createBackup().catch(() => {});
+    } catch (e) {}
+
     await logAudit({
       userId: req.user ? req.user.id : null,
       action: 'PATIENT_REGISTERED',
@@ -525,6 +535,15 @@ const updatePatient = async (req, res, next) => {
 
     await patient.save();
 
+    // Ensure immediate SQLite WAL checkpoint flush and portable backup snapshot
+    if (sequelize.checkpointDatabase) {
+      await sequelize.checkpointDatabase().catch(() => {});
+    }
+    try {
+      const { createBackup } = require('../services/backupService');
+      createBackup().catch(() => {});
+    } catch (e) {}
+
     await logAudit({
       userId: req.user.id,
       action: 'PATIENT_UPDATED',
@@ -540,6 +559,96 @@ const updatePatient = async (req, res, next) => {
       patient
     });
   } catch (error) {
+    next(error);
+  }
+};
+
+const deletePatient = async (req, res, next) => {
+  const t = await sequelize.transaction();
+  try {
+    const { id } = req.params;
+
+    const patient = await Patient.findByPk(id, { transaction: t });
+    if (!patient) {
+      await t.rollback();
+      return res.status(404).json({
+        success: false,
+        message: 'Patient record not found in database.'
+      });
+    }
+
+    const patientCard = patient.card_number;
+    const patientName = patient.full_name;
+
+    // Cleanly cascade all related records in transactional order
+    const visits = await PatientVisit.findAll({ where: { patient_id: id }, transaction: t });
+    const visitIds = visits.map(v => v.id);
+
+    // Procedure requests and lab results
+    const procRequests = await ProcedureRequest.findAll({ where: { patient_id: id }, transaction: t });
+    const procIds = procRequests.map(p => p.id);
+    if (procIds.length > 0) {
+      await LaboratoryResult.destroy({ where: { request_id: procIds }, transaction: t });
+      await ProcedureRequestItem.destroy({ where: { request_id: procIds }, transaction: t });
+      await PaymentAllocation.destroy({ where: { procedure_request_id: procIds }, transaction: t });
+      await ProcedureRequest.destroy({ where: { id: procIds }, transaction: t });
+    }
+
+    // Consultations, Diagnoses, Prescriptions
+    const consultations = await Consultation.findAll({ where: { patient_id: id }, transaction: t });
+    const consultIds = consultations.map(c => c.id);
+    if (consultIds.length > 0) {
+      await Diagnosis.destroy({ where: { consultation_id: consultIds }, transaction: t });
+      const prescriptions = await Prescription.findAll({ where: { consultation_id: consultIds }, transaction: t });
+      const rxIds = prescriptions.map(r => r.id);
+      if (rxIds.length > 0) {
+        await PrescriptionItem.destroy({ where: { prescription_id: rxIds }, transaction: t });
+        await Prescription.destroy({ where: { id: rxIds }, transaction: t });
+      }
+      await Consultation.destroy({ where: { id: consultIds }, transaction: t });
+    }
+
+    // Payments and allocations
+    const payments = await Payment.findAll({ where: { patient_id: id }, transaction: t });
+    const payIds = payments.map(p => p.id);
+    if (payIds.length > 0) {
+      await PaymentAllocation.destroy({ where: { payment_id: payIds }, transaction: t });
+      await Payment.destroy({ where: { id: payIds }, transaction: t });
+    }
+
+    // Appointments & Visits
+    await Appointment.destroy({ where: { patient_id: id }, transaction: t });
+    if (visitIds.length > 0) {
+      await PatientVisit.destroy({ where: { id: visitIds }, transaction: t });
+    }
+
+    // Delete patient record
+    await patient.destroy({ transaction: t });
+    await t.commit();
+
+    if (sequelize.checkpointDatabase) {
+      await sequelize.checkpointDatabase().catch(() => {});
+    }
+    try {
+      const { createBackup } = require('../services/backupService');
+      createBackup().catch(() => {});
+    } catch (e) {}
+
+    await logAudit({
+      userId: req.user.id,
+      action: 'PATIENT_DELETED',
+      entity: 'Patient',
+      entityId: id,
+      details: { card_number: patientCard, full_name: patientName },
+      ipAddress: req.ip
+    });
+
+    res.json({
+      success: true,
+      message: `Patient ${patientName} (${patientCard}) was permanently deleted from the database.`
+    });
+  } catch (error) {
+    await t.rollback();
     next(error);
   }
 };
@@ -611,6 +720,7 @@ module.exports = {
   listPatients,
   getPatientById,
   updatePatient,
+  deletePatient,
   getMedicalHistory,
   generateCardNumber,
   getCardFeeStatus,

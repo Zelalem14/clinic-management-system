@@ -51,7 +51,7 @@ export const PatientList = () => {
   const fetchPatients = async (query = '') => {
     try {
       setLoading(true);
-      const res = await api.get(`/patients?search=${encodeURIComponent(query)}`);
+      const res = await api.get(`/patients?limit=100&search=${encodeURIComponent(query)}`);
       setPatients(res.data.patients || []);
     } catch (err) {
       console.error('Failed to load patients:', err);

@@ -42,6 +42,15 @@ const createBackup = async () => {
     files: []
   };
 
+  // 0. Ensure SQLite WAL checkpoint is flushed into main database file
+  if (sequelize.checkpointDatabase) {
+    try {
+      await sequelize.checkpointDatabase();
+    } catch (ckptErr) {
+      console.warn('Pre-backup checkpoint note:', ckptErr.message);
+    }
+  }
+
   // 1. SQLite binary backup if applicable
   if (sequelize.getDialect() === 'sqlite' && sequelize.options.storage) {
     const sourcePath = sequelize.options.storage;
@@ -146,8 +155,167 @@ const listBackups = () => {
   }
 };
 
+/**
+ * Idempotently restores or synchronizes records from clinic-dump-latest.json
+ * into the active database. Preserves all existing records and safely inserts any missing ones.
+ */
+const restoreFromLatestDump = async (customDumpPath = null) => {
+  const dumpFile = customDumpPath || path.join(getBackupDir(), 'clinic-dump-latest.json');
+  if (!fs.existsSync(dumpFile)) {
+    return { success: false, message: 'No portable JSON dump found to restore.' };
+  }
+
+  try {
+    const rawData = fs.readFileSync(dumpFile, 'utf8');
+    const dump = JSON.parse(rawData);
+    const tables = dump.tables || {};
+
+    let restoredPatients = 0;
+    let restoredUsers = 0;
+    let restoredServices = 0;
+
+    // 1. Users
+    if (Array.isArray(tables.users)) {
+      for (const u of tables.users) {
+        const [user, created] = await User.findOrCreate({
+          where: { email: u.email.toLowerCase().trim() },
+          defaults: u
+        });
+        if (created) restoredUsers++;
+      }
+    }
+
+    // 2. Services
+    if (Array.isArray(tables.services)) {
+      for (const s of tables.services) {
+        const [srv, created] = await Service.findOrCreate({
+          where: { service_code: s.service_code },
+          defaults: s
+        });
+        if (created) restoredServices++;
+      }
+    }
+
+    // 3. Patients
+    if (Array.isArray(tables.patients)) {
+      for (const p of tables.patients) {
+        const [pat, created] = await Patient.findOrCreate({
+          where: { card_number: p.card_number },
+          defaults: p
+        });
+        if (created) restoredPatients++;
+      }
+    }
+
+    // 4. Patient Visits
+    if (Array.isArray(tables.visits)) {
+      for (const v of tables.visits) {
+        await PatientVisit.findOrCreate({
+          where: { id: v.id },
+          defaults: v
+        });
+      }
+    }
+
+    // 5. Payments
+    if (Array.isArray(tables.payments)) {
+      for (const pay of tables.payments) {
+        await Payment.findOrCreate({
+          where: { receipt_number: pay.receipt_number },
+          defaults: pay
+        });
+      }
+    }
+
+    // 6. Consultations
+    if (Array.isArray(tables.consultations)) {
+      for (const c of tables.consultations) {
+        await Consultation.findOrCreate({
+          where: { id: c.id },
+          defaults: c
+        });
+      }
+    }
+
+    // 7. Diagnoses
+    if (Array.isArray(tables.diagnoses)) {
+      for (const d of tables.diagnoses) {
+        await Diagnosis.findOrCreate({
+          where: { id: d.id },
+          defaults: d
+        });
+      }
+    }
+
+    // 8. Procedure Requests
+    if (Array.isArray(tables.procedure_requests)) {
+      for (const pr of tables.procedure_requests) {
+        await ProcedureRequest.findOrCreate({
+          where: { id: pr.id },
+          defaults: pr
+        });
+      }
+    }
+
+    // 9. Laboratory Results
+    if (Array.isArray(tables.laboratory_results)) {
+      for (const lr of tables.laboratory_results) {
+        await LaboratoryResult.findOrCreate({
+          where: { id: lr.id },
+          defaults: lr
+        });
+      }
+    }
+
+    // 10. Prescriptions
+    if (Array.isArray(tables.prescriptions)) {
+      for (const rx of tables.prescriptions) {
+        await Prescription.findOrCreate({
+          where: { id: rx.id },
+          defaults: rx
+        });
+      }
+    }
+
+    // 11. Appointments
+    if (Array.isArray(tables.appointments)) {
+      for (const appt of tables.appointments) {
+        await Appointment.findOrCreate({
+          where: { id: appt.id },
+          defaults: appt
+        });
+      }
+    }
+
+    // 12. Clinic Settings
+    if (Array.isArray(tables.clinic_settings) && tables.clinic_settings.length > 0) {
+      const existingSettings = await ClinicSetting.findOne();
+      if (!existingSettings) {
+        await ClinicSetting.create(tables.clinic_settings[0]);
+      }
+    }
+
+    if (sequelize.checkpointDatabase) {
+      await sequelize.checkpointDatabase();
+    }
+
+    console.log(`Portable dump synchronization: verified ${tables.patients?.length || 0} patients (restored: ${restoredPatients}), ${tables.users?.length || 0} users (restored: ${restoredUsers}).`);
+
+    return {
+      success: true,
+      restoredPatients,
+      restoredUsers,
+      totalDumpPatients: tables.patients?.length || 0
+    };
+  } catch (err) {
+    console.error('Failed to restore from latest dump:', err.message);
+    return { success: false, error: err.message };
+  }
+};
+
 module.exports = {
   createBackup,
+  restoreFromLatestDump,
   listBackups,
   getBackupDir
 };

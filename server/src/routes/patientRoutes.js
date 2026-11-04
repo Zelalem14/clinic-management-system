@@ -32,6 +32,12 @@ router.put(
   patientController.updatePatient
 );
 
+router.delete(
+  '/:id',
+  authorize([ROLES.ADMIN]),
+  patientController.deletePatient
+);
+
 router.get(
   '/:id/card-fee-status',
   authorize([ROLES.RECEPTIONIST, ROLES.DOCTOR, ROLES.ADMIN]),

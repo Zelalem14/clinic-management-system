@@ -157,4 +157,21 @@ if (process.env.DATABASE_URL) {
   });
 }
 
+/**
+ * Executes a full WAL checkpoint to ensure all uncommitted WAL pages are flushed
+ * directly into the primary clinic.sqlite database file on disk.
+ */
+const checkpointDatabase = async () => {
+  if (sequelize && sequelize.getDialect() === 'sqlite') {
+    try {
+      await sequelize.query('PRAGMA wal_checkpoint(TRUNCATE);');
+    } catch (err) {
+      // Non-fatal, logs diagnostic notice
+      console.warn('SQLite WAL checkpoint note:', err.message);
+    }
+  }
+};
+
+sequelize.checkpointDatabase = checkpointDatabase;
+
 module.exports = sequelize;

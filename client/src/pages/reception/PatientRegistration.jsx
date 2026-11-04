@@ -201,6 +201,9 @@ export const PatientRegistration = () => {
 
     try {
       const response = await api.post('/patients', formData);
+      if (!response.data?.patient?.id || !response.data?.patient?.card_number) {
+        throw new Error('Database did not return confirmation for patient record insertion.');
+      }
       setSuccessData(response.data);
       setShowSuccessModal(true);
     } catch (err) {
@@ -211,7 +214,7 @@ export const PatientRegistration = () => {
           message: err.response.data.message
         });
       } else {
-        setError(err.response?.data?.message || 'Failed to register patient. Please verify details.');
+        setError(err.response?.data?.message || err.message || 'Failed to permanently save patient record to database. Please verify connection and try again.');
       }
     } finally {
       setIsSubmitting(false);
