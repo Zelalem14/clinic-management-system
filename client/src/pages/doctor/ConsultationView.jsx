@@ -46,6 +46,8 @@ export const ConsultationView = () => {
   const [consultationId, setConsultationId] = useState(null);
   const [isSavingNotes, setIsSavingNotes] = useState(false);
   const [notesSuccess, setNotesSuccess] = useState(false);
+  const [lastSavedTime, setLastSavedTime] = useState(null);
+  const [autoSaveStatus, setAutoSaveStatus] = useState(''); // 'saving' | 'saved' | 'error' | ''
 
   // Available Services for Ordering
   const [availableServices, setAvailableServices] = useState([]);
@@ -84,9 +86,10 @@ export const ConsultationView = () => {
       const histRes = await api.get(`/patients/${visitData.patient_id}/medical-history`);
       setMedicalHistory(histRes.data);
 
-      // If consultation already exists for this visit, populate form
+      // If consultation already exists for this visit, populate form with latest data
       if (visitData.consultations && visitData.consultations.length > 0) {
-        const consult = visitData.consultations[0];
+        const sortedConsults = [...visitData.consultations].sort((a, b) => b.id - a.id);
+        const consult = sortedConsults[0];
         setConsultationId(consult.id);
         setClinicalForm({
           symptoms: consult.symptoms || '',
@@ -95,6 +98,10 @@ export const ConsultationView = () => {
           treatment_plan: consult.treatment_plan || '',
           clinical_notes: consult.clinical_notes || ''
         });
+        const savedDate = consult.updatedAt || consult.updated_at || consult.createdAt || consult.created_at;
+        if (savedDate) {
+          setLastSavedTime(new Date(savedDate));
+        }
       }
 
       // Load active services catalog
@@ -200,24 +207,53 @@ export const ConsultationView = () => {
     loadConsultationData();
   }, [visitId]);
 
-  // Save / Start Consultation Draft
-  const handleSaveDraft = async () => {
+  // Save / Start Consultation Draft (supports silent autosave on 'Next' or tab switch)
+  const handleSaveDraft = async (silent = false) => {
+    if (!patient || !visitId) return;
     setIsSavingNotes(true);
-    setNotesSuccess(false);
+    if (silent) {
+      setAutoSaveStatus('saving');
+    } else {
+      setNotesSuccess(false);
+    }
     try {
       const res = await api.post('/consultations', {
         visit_id: visitId,
         patient_id: patient.id,
         ...clinicalForm
       });
-      setConsultationId(res.data.consultation.id);
-      setNotesSuccess(true);
-      setTimeout(() => setNotesSuccess(false), 2500);
+      if (res.data?.consultation?.id) {
+        setConsultationId(res.data.consultation.id);
+      }
+      setLastSavedTime(new Date());
+      if (silent) {
+        setAutoSaveStatus('saved');
+        setTimeout(() => setAutoSaveStatus(''), 3000);
+      } else {
+        setNotesSuccess(true);
+        setTimeout(() => setNotesSuccess(false), 2500);
+      }
+      return res.data?.consultation;
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to save clinical notes');
+      console.error('Failed to save doctor exam and notes draft:', err);
+      if (!silent) {
+        alert(err.response?.data?.message || 'Failed to save clinical notes');
+      }
+      if (silent) {
+        setAutoSaveStatus('error');
+        setTimeout(() => setAutoSaveStatus(''), 4000);
+      }
     } finally {
       setIsSavingNotes(false);
     }
+  };
+
+  // Safe tab switcher: automatically saves doctor exam and notes when navigating away
+  const handleTabChange = async (targetTab) => {
+    if (activeTab === 'clinical' && targetTab !== 'clinical') {
+      await handleSaveDraft(true);
+    }
+    setActiveTab(targetTab);
   };
 
   // Toggle Service selection for procedure request
@@ -375,10 +411,22 @@ export const ConsultationView = () => {
           </div>
 
           {/* Quick Actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            {lastSavedTime && (
+              <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 text-xs font-semibold border border-emerald-200">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Saved to Record ({lastSavedTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})</span>
+              </span>
+            )}
+            {autoSaveStatus === 'saving' && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 text-amber-700 text-xs font-semibold border border-amber-200 animate-pulse">
+                <Clock className="w-3.5 h-3.5 text-amber-600" />
+                <span>Auto-saving...</span>
+              </span>
+            )}
             <button
               type="button"
-              onClick={handleSaveDraft}
+              onClick={() => handleSaveDraft(false)}
               disabled={isSavingNotes}
               className="px-3.5 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer"
             >
@@ -425,7 +473,7 @@ export const ConsultationView = () => {
       <div className="flex border-b border-slate-200 bg-white rounded-t-2xl px-4 gap-2 overflow-x-auto">
         <button
           type="button"
-          onClick={() => setActiveTab('clinical')}
+          onClick={() => handleTabChange('clinical')}
           className={`py-3.5 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-all cursor-pointer ${
             activeTab === 'clinical'
               ? 'border-brand-600 text-brand-700'
@@ -438,7 +486,7 @@ export const ConsultationView = () => {
 
         <button
           type="button"
-          onClick={() => setActiveTab('tests')}
+          onClick={() => handleTabChange('tests')}
           className={`py-3.5 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-all cursor-pointer ${
             activeTab === 'tests'
               ? 'border-brand-600 text-brand-700'
@@ -451,7 +499,7 @@ export const ConsultationView = () => {
 
         <button
           type="button"
-          onClick={() => setActiveTab('results')}
+          onClick={() => handleTabChange('results')}
           className={`py-3.5 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-all cursor-pointer ${
             activeTab === 'results'
               ? 'border-brand-600 text-brand-700'
@@ -467,7 +515,7 @@ export const ConsultationView = () => {
 
         <button
           type="button"
-          onClick={() => setActiveTab('prescription')}
+          onClick={() => handleTabChange('prescription')}
           className={`py-3.5 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-all cursor-pointer ${
             activeTab === 'prescription'
               ? 'border-brand-600 text-brand-700'
@@ -480,7 +528,7 @@ export const ConsultationView = () => {
 
         <button
           type="button"
-          onClick={() => setActiveTab('history')}
+          onClick={() => handleTabChange('history')}
           className={`py-3.5 px-4 text-xs font-bold border-b-2 flex items-center gap-2 transition-all cursor-pointer ${
             activeTab === 'history'
               ? 'border-brand-600 text-brand-700'
@@ -503,7 +551,7 @@ export const ConsultationView = () => {
               </div>
               <button
                 type="button"
-                onClick={() => setActiveTab('results')}
+                onClick={() => handleTabChange('results')}
                 className="px-4 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold transition-all cursor-pointer shadow-xs"
               >
                 View Lab Results &rarr;
@@ -563,17 +611,56 @@ export const ConsultationView = () => {
                 className="w-full rounded-xl border border-slate-300 p-3 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
               />
             </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                <span>Doctor Clinical Notes & Confidential Observations</span>
+                <span className="text-[11px] font-normal text-slate-400">Internal clinical remarks, differential diagnoses, follow-up thoughts</span>
+              </label>
+              <textarea
+                rows="3"
+                value={clinicalForm.clinical_notes}
+                onChange={(e) => setClinicalForm({ ...clinicalForm, clinical_notes: e.target.value })}
+                placeholder="Doctor's confidential clinical progress notes, patient response, differential diagnosis, special precautions..."
+                className="w-full rounded-xl border border-slate-300 p-3 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+              />
+            </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
-            <button
-              type="button"
-              onClick={() => setActiveTab('tests')}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl transition-all cursor-pointer"
-            >
-              <span>Order Lab Tests (Optional)</span>
-              <span>&rarr;</span>
-            </button>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-4 border-t border-slate-100">
+            <div className="text-xs text-slate-500 flex items-center gap-1.5">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>
+                {lastSavedTime ? (
+                  <span className="text-emerald-700 font-semibold">
+                    ✓ All exam findings & notes saved to permanent database ({lastSavedTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})
+                  </span>
+                ) : (
+                  <span>Clicking <strong>"Next: Order Lab Tests"</strong> automatically saves exam findings and notes permanently.</span>
+                )}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => handleSaveDraft(false)}
+                disabled={isSavingNotes}
+                className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer"
+              >
+                {isSavingNotes ? 'Saving...' : notesSuccess ? '✓ Saved to DB!' : 'Save Progress Draft'}
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  await handleSaveDraft(true);
+                  setActiveTab('tests');
+                }}
+                className="inline-flex items-center gap-2 px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl shadow-md shadow-brand-600/20 transition-all cursor-pointer"
+              >
+                <span>Next: Order Lab Tests</span>
+                <span>&rarr;</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -716,19 +803,39 @@ export const ConsultationView = () => {
                 </div>
               </div>
 
-              {/* Order Action */}
-              <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-                <div className="text-xs text-slate-600 font-semibold">
-                  {selectedServices.length} test(s) selected
+              {/* Order Action & Navigation Controls */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-4 border-t border-slate-100">
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleTabChange('clinical')}
+                    className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer"
+                  >
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                    <span>Back to Doctor Exam & Notes</span>
+                  </button>
+                  <span className="text-xs text-slate-500 font-semibold hidden md:inline">
+                    ({selectedServices.length} test{selectedServices.length === 1 ? '' : 's'} selected)
+                  </span>
                 </div>
-                <button
-                  type="submit"
-                  disabled={isOrderingProc || selectedServices.length === 0}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl shadow-md shadow-brand-600/20 transition-all disabled:opacity-50 cursor-pointer"
-                >
-                  <TestTubes className="w-4 h-4" />
-                  <span>{isOrderingProc ? 'Submitting...' : 'Send Test Order to Lab & Reception'}</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="submit"
+                    disabled={isOrderingProc || selectedServices.length === 0}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl shadow-md shadow-brand-600/20 transition-all disabled:opacity-50 cursor-pointer"
+                  >
+                    <TestTubes className="w-4 h-4" />
+                    <span>{isOrderingProc ? 'Submitting...' : 'Send Order to Lab & Reception'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleTabChange('results')}
+                    className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-xl transition-all cursor-pointer"
+                  >
+                    <span>Next: View Lab Results</span>
+                    <span>&rarr;</span>
+                  </button>
+                </div>
               </div>
             </form>
           </div>
@@ -743,12 +850,40 @@ export const ConsultationView = () => {
           </h3>
 
           {existingRequests.every(r => !r.results || r.results.length === 0) ? (
-            <div className="p-8 text-center text-slate-400">
-              <Clock className="w-10 h-10 mx-auto text-slate-300 mb-2" />
-              <p className="text-sm font-semibold text-slate-700">No Finalized Results Yet</p>
-              <p className="text-xs text-slate-400 mt-1">
-                Once tests are recorded in the laboratory, findings will automatically appear here.
-              </p>
+            <div className="p-8 text-center text-slate-400 space-y-4">
+              <Clock className="w-10 h-10 mx-auto text-slate-300" />
+              <div>
+                <p className="text-sm font-semibold text-slate-700">No Finalized Lab Results Yet</p>
+                <p className="text-xs text-slate-400 mt-1">
+                  Once laboratory technician Assefa Zegeye completes the ordered tests, findings will automatically appear here.
+                </p>
+              </div>
+              <div className="flex items-center justify-center gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => handleTabChange('clinical')}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  <span>Back to Doctor Exam & Notes</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleTabChange('tests')}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-bold rounded-xl transition-all cursor-pointer"
+                >
+                  <TestTubes className="w-3.5 h-3.5" />
+                  <span>Manage Lab Orders</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleTabChange('prescription')}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl transition-all cursor-pointer"
+                >
+                  <Pill className="w-3.5 h-3.5" />
+                  <span>Next: Prescribe Medicines &rarr;</span>
+                </button>
+              </div>
             </div>
           ) : (
             <div className="space-y-4">
@@ -904,14 +1039,32 @@ export const ConsultationView = () => {
                 })
               ))}
 
-              <div className="pt-4 border-t border-slate-100 flex justify-end">
+              <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleTabChange('tests')}
+                    className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer"
+                  >
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                    <span>Back to Order Lab Tests</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleTabChange('clinical')}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
+                  >
+                    <Stethoscope className="w-3.5 h-3.5" />
+                    <span>Review Doctor Exam & Notes</span>
+                  </button>
+                </div>
                 <button
                   type="button"
-                  onClick={() => setActiveTab('prescription')}
+                  onClick={() => handleTabChange('prescription')}
                   className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl shadow-md shadow-brand-600/20 transition-all cursor-pointer"
                 >
                   <Pill className="w-4 h-4" />
-                  <span>Proceed to Prescribe Medicines &rarr;</span>
+                  <span>Next: Prescribe Medicines &rarr;</span>
                 </button>
               </div>
             </div>
@@ -1055,7 +1208,25 @@ export const ConsultationView = () => {
             </div>
           </div>
 
-          <div className="flex justify-end pt-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-slate-100">
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => handleTabChange('results')}
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Back to Lab Results</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleTabChange('clinical')}
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
+              >
+                <Stethoscope className="w-3.5 h-3.5" />
+                <span>Review Doctor Exam & Notes</span>
+              </button>
+            </div>
             <button
               type="button"
               onClick={handleCompleteConsultation}
@@ -1072,22 +1243,103 @@ export const ConsultationView = () => {
       {/* Tab 5: Patient Historical Records */}
       {activeTab === 'history' && (
         <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
-          <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2">
-            Historical Clinical Encounters
-          </h3>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+                Historical Clinical Encounters & Doctor Notes
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                All previously saved physical examination findings, clinical notes, symptoms, and diagnoses for this patient.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => handleTabChange('clinical')}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-brand-50 hover:bg-brand-100 text-brand-700 rounded-xl text-xs font-bold transition-colors cursor-pointer shrink-0"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Return to Current Consultation</span>
+            </button>
+          </div>
+
           {medicalHistory?.consultations?.length === 0 ? (
-            <p className="text-xs text-slate-400 py-4">No previous recorded consultations on file.</p>
+            <div className="p-8 text-center text-slate-400 space-y-2">
+              <FileText className="w-10 h-10 mx-auto text-slate-300" />
+              <p className="text-sm font-semibold text-slate-700">No previous recorded consultations on file.</p>
+              <p className="text-xs text-slate-400">This is the patient's first clinical encounter at the clinic.</p>
+            </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {medicalHistory?.consultations?.map((c) => (
-                <div key={c.id} className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2 text-xs">
-                  <div className="flex justify-between items-center">
-                    <span className="font-bold text-slate-900">Consultation on {new Date(c.consultation_date).toLocaleDateString()}</span>
-                    <span className="text-slate-500">Doctor: {c.doctor?.name}</span>
+                <div key={c.id} className="p-5 rounded-2xl border border-slate-200 bg-slate-50/60 space-y-3 text-xs shadow-2xs">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-slate-200 pb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-sm text-slate-900">
+                        Consultation #{c.id} — {new Date(c.consultation_date).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
+                      </span>
+                      <StatusBadge status={c.status} size="sm" />
+                    </div>
+                    <span className="text-slate-600 font-semibold bg-white px-2.5 py-0.5 rounded border border-slate-200">
+                      Attending Doctor: {c.doctor?.name || 'Dr. Abebe Kebede'}
+                    </span>
                   </div>
-                  <div><span className="font-semibold text-slate-700">Diagnosis:</span> {c.diagnosis || 'None'}</div>
-                  <div><span className="font-semibold text-slate-700">Symptoms:</span> {c.symptoms || 'N/A'}</div>
-                  <div><span className="font-semibold text-slate-700">Treatment Plan:</span> {c.treatment_plan || 'N/A'}</div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {/* Doctor Examination Findings */}
+                    <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-1">
+                      <span className="font-bold text-slate-800 flex items-center gap-1 text-[11px] uppercase tracking-wider text-brand-700">
+                        <Stethoscope className="w-3.5 h-3.5" />
+                        <span>Doctor Physical Examination Findings:</span>
+                      </span>
+                      <p className="text-xs text-slate-800 whitespace-pre-wrap leading-relaxed font-medium">
+                        {c.examination_findings || 'No physical exam findings recorded for this visit.'}
+                      </p>
+                    </div>
+
+                    {/* Symptoms */}
+                    <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-1">
+                      <span className="font-bold text-slate-800 flex items-center gap-1 text-[11px] uppercase tracking-wider text-amber-700">
+                        <Activity className="w-3.5 h-3.5" />
+                        <span>Reported Patient Symptoms:</span>
+                      </span>
+                      <p className="text-xs text-slate-800 whitespace-pre-wrap leading-relaxed">
+                        {c.symptoms || 'No specific symptoms noted.'}
+                      </p>
+                    </div>
+
+                    {/* Clinical Notes */}
+                    {c.clinical_notes && (
+                      <div className="p-3 bg-white rounded-xl border border-slate-200 space-y-1 md:col-span-2">
+                        <span className="font-bold text-slate-800 flex items-center gap-1 text-[11px] uppercase tracking-wider text-indigo-700">
+                          <MessageSquare className="w-3.5 h-3.5" />
+                          <span>Doctor Clinical Notes & Observations:</span>
+                        </span>
+                        <p className="text-xs text-slate-800 whitespace-pre-wrap leading-relaxed">
+                          {c.clinical_notes}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Diagnosis */}
+                    <div className="p-3 bg-brand-50/50 rounded-xl border border-brand-200 space-y-1">
+                      <span className="font-bold text-brand-900 text-[11px] uppercase tracking-wider block">
+                        Diagnosis / Illness:
+                      </span>
+                      <p className="text-xs font-bold text-brand-800">
+                        {c.diagnosis || 'Undiagnosed / Routine evaluation'}
+                      </p>
+                    </div>
+
+                    {/* Treatment Plan */}
+                    <div className="p-3 bg-emerald-50/50 rounded-xl border border-emerald-200 space-y-1">
+                      <span className="font-bold text-emerald-900 text-[11px] uppercase tracking-wider block">
+                        Doctor Advice & Treatment Plan:
+                      </span>
+                      <p className="text-xs text-emerald-900">
+                        {c.treatment_plan || 'Standard rest and fluids advised.'}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>

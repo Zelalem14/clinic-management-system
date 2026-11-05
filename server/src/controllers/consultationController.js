@@ -130,17 +130,44 @@ const createOrStartConsultation = async (req, res, next) => {
       await consultation.save({ transaction: t });
     }
 
-    // If diagnosis was specified, record in diagnoses table
+    // If diagnosis was specified, record or update in diagnoses table
     if (diagnosis) {
-      await Diagnosis.create({
-        consultation_id: consultation.id,
-        patient_id: consultation.patient_id,
-        description: diagnosis,
-        type: 'provisional'
-      }, { transaction: t });
+      const existingDiag = await Diagnosis.findOne({
+        where: { consultation_id: consultation.id, type: 'provisional' },
+        transaction: t
+      });
+      if (existingDiag) {
+        existingDiag.description = diagnosis;
+        await existingDiag.save({ transaction: t });
+      } else {
+        await Diagnosis.create({
+          consultation_id: consultation.id,
+          patient_id: consultation.patient_id,
+          description: diagnosis,
+          type: 'provisional'
+        }, { transaction: t });
+      }
     }
 
     await t.commit();
+
+    // Ensure immediate disk flush and backup dump sync
+    if (sequelize.checkpointDatabase) {
+      await sequelize.checkpointDatabase().catch(() => {});
+    }
+    try {
+      const { createBackup } = require('../services/backupService');
+      createBackup().catch(() => {});
+    } catch (e) {}
+
+    // Ensure immediate disk flush and backup dump sync
+    if (sequelize.checkpointDatabase) {
+      await sequelize.checkpointDatabase().catch(() => {});
+    }
+    try {
+      const { createBackup } = require('../services/backupService');
+      createBackup().catch(() => {});
+    } catch (e) {}
 
     await logAudit({
       userId: req.user.id,
@@ -185,6 +212,15 @@ const updateConsultation = async (req, res, next) => {
     if (clinical_notes !== undefined) consultation.clinical_notes = clinical_notes;
 
     await consultation.save();
+
+    // Ensure immediate disk flush and backup dump sync
+    if (sequelize.checkpointDatabase) {
+      await sequelize.checkpointDatabase().catch(() => {});
+    }
+    try {
+      const { createBackup } = require('../services/backupService');
+      createBackup().catch(() => {});
+    } catch (e) {}
 
     res.json({
       success: true,
@@ -282,6 +318,15 @@ const completeConsultation = async (req, res, next) => {
     }
 
     await t.commit();
+
+    // Ensure immediate disk flush and backup dump sync
+    if (sequelize.checkpointDatabase) {
+      await sequelize.checkpointDatabase().catch(() => {});
+    }
+    try {
+      const { createBackup } = require('../services/backupService');
+      createBackup().catch(() => {});
+    } catch (e) {}
 
     await logAudit({
       userId: req.user.id,

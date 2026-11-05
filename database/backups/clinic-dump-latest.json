@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "exported_at": "2026-11-05T04:41:17.497Z",
+  "exported_at": "2026-11-05T05:01:42.646Z",
   "dialect": "sqlite",
   "tables": {
     "users": [
@@ -690,6 +690,17 @@
         "notes": "Initial registration visit. Consultation: General Consultation",
         "createdAt": "2026-11-04 09:45:23.672 +00:00",
         "updatedAt": "2026-11-04 09:45:23.941 +00:00"
+      },
+      {
+        "id": 24,
+        "patient_id": 1,
+        "doctor_id": 3,
+        "visit_date": "2026-11-05 05:01:42.557 +00:00",
+        "visit_type": "Outpatient",
+        "status": "in_consultation",
+        "notes": "Automated Doctor Exam Persistence Test",
+        "createdAt": "2026-11-05 05:01:42.564 +00:00",
+        "updatedAt": "2026-11-05 05:01:42.564 +00:00"
       }
     ],
     "payments": [
@@ -1318,6 +1329,22 @@
         "completed_at": "2026-11-04 09:45:23.851 +00:00",
         "createdAt": "2026-11-04 09:45:23.836 +00:00",
         "updatedAt": "2026-11-04 09:45:23.852 +00:00"
+      },
+      {
+        "id": 17,
+        "visit_id": 24,
+        "patient_id": 1,
+        "doctor_id": 3,
+        "consultation_date": "2026-11-05 05:01:42.615 +00:00",
+        "symptoms": "Persistent dry cough and low-grade evening fever for 4 days",
+        "examination_findings": "BP: 125/82 mmHg, PR: 78 bpm, Temp: 37.8 C, Resp: 18/min. Chest: Bilateral mild coarse crackles.",
+        "diagnosis": "Acute Bronchitis (Provisional)",
+        "treatment_plan": "Oral hydration, steam inhalation, rest, review in 3 days.",
+        "clinical_notes": "Patient denies haemoptysis or chest pain. No signs of respiratory distress.",
+        "status": "in_progress",
+        "completed_at": null,
+        "createdAt": "2026-11-05 05:01:42.615 +00:00",
+        "updatedAt": "2026-11-05 05:01:42.615 +00:00"
       }
     ],
     "diagnoses": [
