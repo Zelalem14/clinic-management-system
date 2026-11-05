@@ -4,6 +4,7 @@ import api from '../../api/client';
 import Modal from '../../components/common/Modal';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import StatusBadge from '../../components/common/StatusBadge';
+import PatientMedicalFileModal from '../../components/common/PatientMedicalFileModal';
 import { 
   Users, 
   Search, 
@@ -13,11 +14,12 @@ import {
   Phone, 
   MapPin, 
   AlertTriangle, 
-  CheckCircle2,
-  FileText,
-  Clock,
-  ShieldCheck,
-  Calendar
+  CheckCircle2, 
+  FileText, 
+  Clock, 
+  ShieldCheck, 
+  Calendar,
+  HeartPulse
 } from 'lucide-react';
 
 export const PatientList = () => {
@@ -201,6 +203,11 @@ export const PatientList = () => {
                             <AlertTriangle className="w-3 h-3 shrink-0" /> Allergy: {p.allergies}
                           </div>
                         )}
+                        {p.medical_history && (
+                          <div className="text-[11px] text-blue-700 font-medium flex items-center gap-1 mt-0.5">
+                            <HeartPulse className="w-3 h-3 shrink-0 text-blue-600" /> History: {p.medical_history}
+                          </div>
+                        )}
                       </td>
                       <td className="px-6 py-4 text-xs capitalize">
                         {p.sex}, {p.age ? `${p.age} yrs` : 'N/A'}
@@ -223,10 +230,10 @@ export const PatientList = () => {
                         <button
                           type="button"
                           onClick={() => handleViewPatientDetails(p)}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer"
+                          className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-brand-700 bg-brand-50 hover:bg-brand-100 border border-brand-200 rounded-xl transition-colors cursor-pointer"
                         >
                           <Eye className="w-3.5 h-3.5" />
-                          <span>View Profile</span>
+                          <span>Medical File</span>
                         </button>
                       </td>
                     </tr>
@@ -379,89 +386,17 @@ export const PatientList = () => {
         </Modal>
       )}
 
-      {/* Patient Detail Profile Modal */}
-      {showDetailModal && selectedPatient && (
-        <Modal
-          isOpen={showDetailModal}
-          onClose={() => setShowDetailModal(false)}
-          title={`Patient Medical File: ${selectedPatient.full_name}`}
-          subtitle={`Permanent Card Number: ${selectedPatient.card_number}`}
-        >
-          <div className="space-y-4 text-xs sm:text-sm text-slate-700">
-            {/* Demographics Card */}
-            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                <div>
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Sex & Age</span>
-                  <span className="font-semibold text-slate-900 capitalize">{selectedPatient.sex}, {selectedPatient.age || 'N/A'} yrs</span>
-                </div>
-                <div>
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Phone</span>
-                  <span className="font-semibold text-slate-900 font-mono">{selectedPatient.phone}</span>
-                </div>
-                <div>
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Registration Date</span>
-                  <span className="font-semibold text-slate-900">{selectedPatient.registration_date || 'Permanent Record'}</span>
-                </div>
-                <div className="col-span-2">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Address</span>
-                  <span className="font-medium text-slate-800">{selectedPatient.address || 'Addis Ababa, Ethiopia'}</span>
-                </div>
-                <div>
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Emergency Contact</span>
-                  <span className="font-medium text-slate-800">{selectedPatient.emergency_contact || 'None listed'}</span>
-                </div>
-              </div>
-
-              {selectedPatient.allergies && (
-                <div className="pt-2 border-t border-slate-200/60 text-xs text-rose-700 font-medium flex items-center gap-1.5">
-                  <AlertTriangle className="w-4 h-4 shrink-0 text-rose-600" />
-                  <span>Allergies: {selectedPatient.allergies}</span>
-                </div>
-              )}
-            </div>
-
-            {/* Visit History */}
-            <div>
-              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                <Clock className="w-4 h-4 text-brand-600" />
-                <span>Recorded Patient Encounters & Visits</span>
-              </h3>
-              {(!selectedPatient.visits || selectedPatient.visits.length === 0) ? (
-                <div className="p-4 text-center text-xs text-slate-400 bg-slate-50 rounded-xl">
-                  No previous visits recorded for this patient.
-                </div>
-              ) : (
-                <div className="space-y-2 max-h-56 overflow-y-auto">
-                  {selectedPatient.visits.map((v) => (
-                    <div key={v.id} className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
-                      <div>
-                        <div className="font-semibold text-slate-900 text-xs flex items-center gap-2">
-                          <span>Visit #{v.id}</span>
-                          <span className="text-slate-400">&bull;</span>
-                          <span>{new Date(v.visit_date).toLocaleDateString()}</span>
-                        </div>
-                        <div className="text-[11px] text-slate-500 mt-0.5">{v.notes || 'Outpatient encounter'}</div>
-                      </div>
-                      <StatusBadge status={v.status} />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="flex justify-end pt-2 border-t border-slate-100">
-              <button
-                type="button"
-                onClick={() => setShowDetailModal(false)}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-semibold cursor-pointer"
-              >
-                Close Profile
-              </button>
-            </div>
-          </div>
-        </Modal>
-      )}
+      {/* Patient Medical File & Complete History Modal */}
+      <PatientMedicalFileModal
+        isOpen={showDetailModal}
+        onClose={() => setShowDetailModal(false)}
+        patient={selectedPatient}
+        onPatientUpdated={(updated) => {
+          setPatients(prev => prev.map(p => p.id === updated.id ? { ...p, ...updated } : p));
+          setSelectedPatient(prev => (prev && prev.id === updated.id ? { ...prev, ...updated } : prev));
+        }}
+        canEdit={true}
+      />
 
     </div>
   );

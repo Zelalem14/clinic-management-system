@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../../api/client';
 import Modal from '../../components/common/Modal';
+import PatientMedicalFileModal from '../../components/common/PatientMedicalFileModal';
 import { 
   UserPlus, 
   CreditCard, 
@@ -17,7 +18,11 @@ import {
   CalendarPlus,
   ShieldCheck,
   Clock,
-  Eye
+  Eye,
+  Edit3,
+  Pill,
+  FileText,
+  AlertTriangle
 } from 'lucide-react';
 
 export const PatientRegistration = () => {
@@ -73,6 +78,10 @@ export const PatientRegistration = () => {
   });
   const [isSubmittingReturnVisit, setIsSubmittingReturnVisit] = useState(false);
   const [returnVisitSuccess, setReturnVisitSuccess] = useState('');
+
+  // Medical File Modal state for viewing & editing history in-place
+  const [showMedicalFileModal, setShowMedicalFileModal] = useState(false);
+  const [selectedMedicalFilePatient, setSelectedMedicalFilePatient] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -292,7 +301,7 @@ export const PatientRegistration = () => {
                   {lookupResult.patient.full_name} ({lookupResult.patient.card_number})
                 </h3>
                 <p className="text-xs text-slate-600">
-                  Phone: {lookupResult.patient.phone} &bull; Registered: {lookupResult.patient.registration_date || 'Permanent'}
+                  Phone: {lookupResult.patient.phone} &bull; Registered: {lookupResult.patient.registration_date || 'Permanent File'}
                 </p>
               </div>
 
@@ -305,13 +314,43 @@ export const PatientRegistration = () => {
                   <CalendarPlus className="w-3.5 h-3.5" />
                   <span>Start Return Visit</span>
                 </button>
-                <Link
-                  to={`/reception/patients?search=${encodeURIComponent(lookupResult.patient.card_number)}`}
-                  className="inline-flex items-center gap-1 px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-semibold rounded-xl cursor-pointer"
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedMedicalFilePatient(lookupResult.patient);
+                    setShowMedicalFileModal(true);
+                  }}
+                  className="inline-flex items-center gap-1 px-3 py-2 bg-white hover:bg-slate-100 text-brand-700 border border-brand-300 text-xs font-semibold rounded-xl cursor-pointer"
                 >
-                  <Eye className="w-3.5 h-3.5" />
-                  <span>View File</span>
-                </Link>
+                  <HeartPulse className="w-3.5 h-3.5 text-brand-600" />
+                  <span>Medical File / History</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Permanent Medical History Summary Strip */}
+            <div className="p-3 bg-white/90 rounded-xl border border-emerald-200 text-xs space-y-1.5">
+              <div className="font-bold text-slate-800 flex items-center gap-1.5 text-[11px] uppercase tracking-wider">
+                <HeartPulse className="w-3.5 h-3.5 text-rose-500" />
+                <span>Recorded Patient Medical History (Permanent DB)</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+                <div>
+                  <span className="font-semibold text-rose-700">Allergies: </span>
+                  <span className="text-slate-800">{lookupResult.patient.allergies || 'No known drug allergies (NKDA)'}</span>
+                </div>
+                <div>
+                  <span className="font-semibold text-blue-700">Past History: </span>
+                  <span className="text-slate-800">{lookupResult.patient.medical_history || 'None recorded'}</span>
+                </div>
+                <div>
+                  <span className="font-semibold text-amber-700">Current Meds: </span>
+                  <span className="text-slate-800">{lookupResult.patient.current_medications || 'None recorded'}</span>
+                </div>
+                <div>
+                  <span className="font-semibold text-slate-700">Intake Notes: </span>
+                  <span className="text-slate-800">{lookupResult.patient.notes || 'None'}</span>
+                </div>
               </div>
             </div>
 
@@ -355,6 +394,28 @@ export const PatientRegistration = () => {
             )}
           </div>
 
+          {/* Quick Medical History Preview */}
+          <div className="p-3 bg-white/90 rounded-xl border border-sky-200 text-xs space-y-1.5">
+            <div className="font-bold text-slate-800 flex items-center gap-1.5 text-[11px] uppercase tracking-wider">
+              <HeartPulse className="w-3.5 h-3.5 text-rose-500" />
+              <span>Current Medical History On File</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+              <div>
+                <span className="font-semibold text-rose-700">Allergies: </span>
+                <span className="text-slate-800">{existingPatientAlert.patient.allergies || 'None recorded'}</span>
+              </div>
+              <div>
+                <span className="font-semibold text-blue-700">Past History: </span>
+                <span className="text-slate-800">{existingPatientAlert.patient.medical_history || 'None recorded'}</span>
+              </div>
+              <div>
+                <span className="font-semibold text-amber-700">Current Meds: </span>
+                <span className="text-slate-800">{existingPatientAlert.patient.current_medications || 'None recorded'}</span>
+              </div>
+            </div>
+          </div>
+
           <div className="flex items-center gap-2 pt-1">
             <button
               type="button"
@@ -364,13 +425,17 @@ export const PatientRegistration = () => {
               <CalendarPlus className="w-3.5 h-3.5" />
               <span>Initiate Return Visit for this Patient</span>
             </button>
-            <Link
-              to={`/reception/patients?search=${encodeURIComponent(existingPatientAlert.patient.card_number)}`}
-              className="inline-flex items-center gap-1 px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-semibold rounded-xl cursor-pointer"
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedMedicalFilePatient(existingPatientAlert.patient);
+                setShowMedicalFileModal(true);
+              }}
+              className="inline-flex items-center gap-1 px-3 py-2 bg-white hover:bg-slate-100 text-brand-700 border border-brand-300 text-xs font-semibold rounded-xl cursor-pointer"
             >
-              <Eye className="w-3.5 h-3.5" />
-              <span>View Full File</span>
-            </Link>
+              <HeartPulse className="w-3.5 h-3.5 text-brand-600" />
+              <span>Medical File / Edit History</span>
+            </button>
           </div>
         </div>
       )}
@@ -565,6 +630,20 @@ export const PatientRegistration = () => {
                 value={formData.medical_history}
                 onChange={handleChange}
                 placeholder="e.g. Hypertension, Diabetes, Asthma"
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none"
+              />
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                Current Regular Medications
+              </label>
+              <input
+                type="text"
+                name="current_medications"
+                value={formData.current_medications}
+                onChange={handleChange}
+                placeholder="e.g. Metformin 500mg, Enalapril 10mg, Ventolin inhaler"
                 className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none"
               />
             </div>
@@ -889,6 +968,29 @@ export const PatientRegistration = () => {
           </div>
         </Modal>
       )}
+
+      {/* Patient Medical File Modal for Quick Review & History Updates */}
+      <PatientMedicalFileModal
+        isOpen={showMedicalFileModal}
+        onClose={() => setShowMedicalFileModal(false)}
+        patient={selectedMedicalFilePatient}
+        onPatientUpdated={(updated) => {
+          setSelectedMedicalFilePatient(prev => prev && prev.id === updated.id ? { ...prev, ...updated } : prev);
+          if (lookupResult && lookupResult.patient?.id === updated.id) {
+            setLookupResult(prev => ({
+              ...prev,
+              patient: { ...prev.patient, ...updated }
+            }));
+          }
+          if (existingPatientAlert && existingPatientAlert.patient?.id === updated.id) {
+            setExistingPatientAlert(prev => ({
+              ...prev,
+              patient: { ...prev.patient, ...updated }
+            }));
+          }
+        }}
+        canEdit={true}
+      />
 
     </div>
   );

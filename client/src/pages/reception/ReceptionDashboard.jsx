@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import api from '../../api/client';
 import StatusBadge from '../../components/common/StatusBadge';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import PatientMedicalFileModal from '../../components/common/PatientMedicalFileModal';
 import { 
   Users, 
   Clock, 
@@ -13,11 +14,14 @@ import {
   ArrowRight, 
   Activity,
   AlertCircle,
+  AlertTriangle,
   Search,
   Calendar,
   FileText,
   CalendarPlus,
-  ShieldCheck
+  ShieldCheck,
+  HeartPulse,
+  Eye
 } from 'lucide-react';
 
 export const ReceptionDashboard = () => {
@@ -29,6 +33,10 @@ export const ReceptionDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [quickSearch, setQuickSearch] = useState('');
   const [activeTableTab, setActiveTableTab] = useState('visits'); // 'visits' | 'patients'
+
+  // Patient Medical File Modal state
+  const [showPatientModal, setShowPatientModal] = useState(false);
+  const [selectedPatientForModal, setSelectedPatientForModal] = useState(null);
 
   const fetchData = async () => {
     try {
@@ -255,12 +263,17 @@ export const ReceptionDashboard = () => {
                           <StatusBadge status={visit.status} />
                         </td>
                         <td className="px-5 py-3 text-right">
-                          <Link
-                            to={`/reception/patients?search=${encodeURIComponent(visit.patient?.card_number || '')}`}
-                            className="inline-flex items-center px-2.5 py-1 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedPatientForModal(visit.patient);
+                              setShowPatientModal(true);
+                            }}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-brand-700 bg-brand-50 hover:bg-brand-100 border border-brand-200 rounded-lg transition-colors cursor-pointer"
                           >
-                            View File
-                          </Link>
+                            <Eye className="w-3.5 h-3.5" />
+                            <span>Medical File</span>
+                          </button>
                         </td>
                       </tr>
                     ))
@@ -272,7 +285,7 @@ export const ReceptionDashboard = () => {
                 <thead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-100">
                   <tr>
                     <th className="px-5 py-3">Card Number</th>
-                    <th className="px-5 py-3">Full Name</th>
+                    <th className="px-5 py-3">Full Name & Clinical History</th>
                     <th className="px-5 py-3">Phone</th>
                     <th className="px-5 py-3">Registered Date</th>
                     <th className="px-5 py-3 text-right">Actions</th>
@@ -294,6 +307,16 @@ export const ReceptionDashboard = () => {
                         <td className="px-5 py-3">
                           <div className="font-semibold text-slate-900">{p.full_name}</div>
                           <div className="text-[11px] text-slate-400 capitalize">{p.sex}, {p.age ? `${p.age} yrs` : 'N/A'}</div>
+                          {p.allergies && (
+                            <div className="text-[10px] text-rose-700 font-medium flex items-center gap-1 mt-0.5">
+                              <AlertTriangle className="w-3 h-3 shrink-0 text-rose-600" /> Allergy: {p.allergies}
+                            </div>
+                          )}
+                          {p.medical_history && (
+                            <div className="text-[10px] text-blue-700 font-medium flex items-center gap-1 mt-0.5">
+                              <HeartPulse className="w-3 h-3 shrink-0 text-blue-600" /> History: {p.medical_history}
+                            </div>
+                          )}
                         </td>
                         <td className="px-5 py-3 text-xs text-slate-600 font-mono">
                           {p.phone}
@@ -302,6 +325,17 @@ export const ReceptionDashboard = () => {
                           {p.registration_date || 'Permanent'}
                         </td>
                         <td className="px-5 py-3 text-right space-x-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedPatientForModal(p);
+                              setShowPatientModal(true);
+                            }}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-lg transition-colors cursor-pointer"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            <span>File</span>
+                          </button>
                           <Link
                             to={`/reception/patients?search=${encodeURIComponent(p.card_number)}`}
                             className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-brand-700 bg-brand-50 hover:bg-brand-100 border border-brand-200 rounded-lg transition-colors"
@@ -369,6 +403,19 @@ export const ReceptionDashboard = () => {
         </div>
 
       </div>
+
+      {/* Patient Medical File & Complete History Modal */}
+      <PatientMedicalFileModal
+        isOpen={showPatientModal}
+        onClose={() => setShowPatientModal(false)}
+        patient={selectedPatientForModal}
+        onPatientUpdated={(updated) => {
+          setRecentPatients(prev => prev.map(p => p.id === updated.id ? { ...p, ...updated } : p));
+          setRecentVisits(prev => prev.map(v => v.patient?.id === updated.id ? { ...v, patient: { ...v.patient, ...updated } } : v));
+          setSelectedPatientForModal(prev => prev && prev.id === updated.id ? { ...prev, ...updated } : prev);
+        }}
+        canEdit={true}
+      />
     </div>
   );
 };

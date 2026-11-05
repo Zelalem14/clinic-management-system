@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "exported_at": "2026-11-05T05:01:42.646Z",
+  "exported_at": "2026-11-05T11:18:47.354Z",
   "dialect": "sqlite",
   "tables": {
     "users": [
@@ -411,48 +411,6 @@
         "updatedAt": "2026-10-24 16:31:29.185 +00:00"
       },
       {
-        "id": 6,
-        "card_number": "CLN-2026-0006",
-        "full_name": "Test Patient Alpha",
-        "dob": "1990-05-15",
-        "age": 36,
-        "sex": "male",
-        "phone": "+1 (555) 999-1122",
-        "address": "100 Health Way",
-        "emergency_contact": null,
-        "consultation_type": "General Consultation",
-        "registration_date": "2026-10-24",
-        "last_card_fee_date": "2026-10-24",
-        "allergies": null,
-        "medical_history": null,
-        "current_medications": null,
-        "notes": null,
-        "status": "active",
-        "createdAt": "2026-10-24 16:31:30.209 +00:00",
-        "updatedAt": "2026-10-24 16:31:30.209 +00:00"
-      },
-      {
-        "id": 7,
-        "card_number": "CLN-2026-0007",
-        "full_name": "Test Patient for Hanna 5781",
-        "dob": null,
-        "age": null,
-        "sex": "female",
-        "phone": "+251 94 5781 1234",
-        "address": null,
-        "emergency_contact": null,
-        "consultation_type": "Dr. Hanna Solomon 5781",
-        "registration_date": "2026-10-24",
-        "last_card_fee_date": "2026-10-24",
-        "allergies": null,
-        "medical_history": null,
-        "current_medications": null,
-        "notes": null,
-        "status": "active",
-        "createdAt": "2026-10-24 16:32:41.757 +00:00",
-        "updatedAt": "2026-10-24 16:32:41.757 +00:00"
-      },
-      {
         "id": 8,
         "card_number": "CLN-2026-0008",
         "full_name": "Bethany Bantayehu",
@@ -495,27 +453,6 @@
         "updatedAt": "2026-10-24 17:14:13.087 +00:00"
       },
       {
-        "id": 19,
-        "card_number": "CLN-2026-0012",
-        "full_name": "Bethlehem Haile (Persistence Test Patient)",
-        "dob": "1995-04-12",
-        "age": 31,
-        "sex": "female",
-        "phone": "+251 91 777 6655",
-        "address": "Bole Sub-City, Woreda 04, Addis Ababa",
-        "emergency_contact": "Haile Wolde (Father) - +251 91 111 2233",
-        "consultation_type": "General Consultation",
-        "registration_date": "2026-11-03",
-        "last_card_fee_date": "2026-11-03 12:09:38.809 +00:00",
-        "allergies": "None reported",
-        "medical_history": "No prior chronic conditions",
-        "current_medications": "None",
-        "notes": null,
-        "status": "active",
-        "createdAt": "2026-11-03 12:09:38.812 +00:00",
-        "updatedAt": "2026-11-03 12:09:38.812 +00:00"
-      },
-      {
         "id": 22,
         "card_number": "CLN-2026-0013",
         "full_name": "Kebede Worku (Persistence Verification Patient)",
@@ -535,27 +472,6 @@
         "status": "active",
         "createdAt": "2026-11-04 09:45:09.923 +00:00",
         "updatedAt": "2026-11-04 09:45:22.721 +00:00"
-      },
-      {
-        "id": 23,
-        "card_number": "CLN-2026-0014",
-        "full_name": "Almaz Tadesse (System Test Patient)",
-        "dob": "1995-04-12",
-        "age": 31,
-        "sex": "female",
-        "phone": "+251 92 888 7766",
-        "address": "Bole Subcity, Woreda 03, Addis Ababa",
-        "emergency_contact": "Tadesse Wolde (+251 91 123 4567)",
-        "consultation_type": "General Consultation",
-        "registration_date": "2026-11-04",
-        "last_card_fee_date": "2026-11-04 09:45:23.721 +00:00",
-        "allergies": null,
-        "medical_history": null,
-        "current_medications": null,
-        "notes": null,
-        "status": "active",
-        "createdAt": "2026-11-04 09:45:23.668 +00:00",
-        "updatedAt": "2026-11-04 09:45:23.721 +00:00"
       }
     ],
     "visits": [
@@ -615,28 +531,6 @@
         "updatedAt": "2026-10-24 16:31:29.200 +00:00"
       },
       {
-        "id": 6,
-        "patient_id": 6,
-        "doctor_id": 3,
-        "visit_date": "2026-10-24 16:31:30.218 +00:00",
-        "visit_type": "Outpatient",
-        "status": "waiting_consultation",
-        "notes": "Initial registration visit. Consultation: General Consultation",
-        "createdAt": "2026-10-24 16:31:30.219 +00:00",
-        "updatedAt": "2026-10-24 16:31:30.327 +00:00"
-      },
-      {
-        "id": 7,
-        "patient_id": 7,
-        "doctor_id": 6,
-        "visit_date": "2026-10-24 16:32:41.765 +00:00",
-        "visit_type": "Outpatient",
-        "status": "lab_pending",
-        "notes": "Initial registration visit. Consultation: Dr. Hanna Solomon 5781",
-        "createdAt": "2026-10-24 16:32:41.766 +00:00",
-        "updatedAt": "2026-10-24 16:32:42.097 +00:00"
-      },
-      {
         "id": 8,
         "patient_id": 8,
         "doctor_id": null,
@@ -659,17 +553,6 @@
         "updatedAt": "2026-10-24 17:22:19.633 +00:00"
       },
       {
-        "id": 19,
-        "patient_id": 19,
-        "doctor_id": 3,
-        "visit_date": "2026-11-03 12:09:38.827 +00:00",
-        "visit_type": "Outpatient",
-        "status": "in_consultation",
-        "notes": "Initial clinical assessment for persistent fever and headache.",
-        "createdAt": "2026-11-03 12:09:38.827 +00:00",
-        "updatedAt": "2026-11-03 12:09:38.827 +00:00"
-      },
-      {
         "id": 22,
         "patient_id": 22,
         "doctor_id": 3,
@@ -679,17 +562,6 @@
         "notes": "Initial registration visit. Consultation: General Medical Consultation",
         "createdAt": "2026-11-04 09:45:09.927 +00:00",
         "updatedAt": "2026-11-04 09:45:22.815 +00:00"
-      },
-      {
-        "id": 23,
-        "patient_id": 23,
-        "doctor_id": 3,
-        "visit_date": "2026-11-04 09:45:23.672 +00:00",
-        "visit_type": "Outpatient",
-        "status": "results_ready",
-        "notes": "Initial registration visit. Consultation: General Consultation",
-        "createdAt": "2026-11-04 09:45:23.672 +00:00",
-        "updatedAt": "2026-11-04 09:45:23.941 +00:00"
       },
       {
         "id": 24,
@@ -753,22 +625,6 @@
         "updatedAt": "2026-10-24 16:31:29.213 +00:00"
       },
       {
-        "id": 4,
-        "visit_id": 6,
-        "patient_id": 6,
-        "receipt_number": "REC-20261024-5222",
-        "total_amount": 500,
-        "amount_paid": 35,
-        "payment_method": "cash",
-        "status": "approved",
-        "approved_by": 2,
-        "approved_at": "2026-10-24 16:31:30.322 +00:00",
-        "transaction_reference": "TEST-REC-001",
-        "notes": "Registration Card Fee and Doctor Consultation Fee",
-        "createdAt": "2026-10-24 16:31:30.220 +00:00",
-        "updatedAt": "2026-10-24 16:31:30.323 +00:00"
-      },
-      {
         "id": 5,
         "visit_id": 2,
         "patient_id": 1,
@@ -783,38 +639,6 @@
         "notes": "Procedure Fee (LABORATORY): Complete Blood Count (CBC / FBC), Lipid Profile Panel",
         "createdAt": "2026-10-24 16:31:30.606 +00:00",
         "updatedAt": "2026-10-24 16:31:30.752 +00:00"
-      },
-      {
-        "id": 6,
-        "visit_id": 7,
-        "patient_id": 7,
-        "receipt_number": "REC-20261024-7741",
-        "total_amount": 500,
-        "amount_paid": 500,
-        "payment_method": "telebirr",
-        "status": "approved",
-        "approved_by": 2,
-        "approved_at": "2026-10-24 16:32:41.767 +00:00",
-        "transaction_reference": null,
-        "notes": "Registration Card Fee and Doctor Consultation Fee",
-        "createdAt": "2026-10-24 16:32:41.767 +00:00",
-        "updatedAt": "2026-10-24 16:32:41.767 +00:00"
-      },
-      {
-        "id": 7,
-        "visit_id": 7,
-        "patient_id": 7,
-        "receipt_number": "PRC-20261024-7266",
-        "total_amount": 150,
-        "amount_paid": 150,
-        "payment_method": "telebirr",
-        "status": "approved",
-        "approved_by": 2,
-        "approved_at": "2026-10-24 16:32:42.148 +00:00",
-        "transaction_reference": "TB12345678",
-        "notes": "Procedure Fee (LABORATORY): Patient File & Digital Card Registration",
-        "createdAt": "2026-10-24 16:32:42.093 +00:00",
-        "updatedAt": "2026-10-24 16:32:42.148 +00:00"
       },
       {
         "id": 8,
@@ -881,22 +705,6 @@
         "updatedAt": "2026-10-24 17:20:09.177 +00:00"
       },
       {
-        "id": 25,
-        "visit_id": 19,
-        "patient_id": 19,
-        "receipt_number": "REC-TEST-778821",
-        "total_amount": 500,
-        "amount_paid": 500,
-        "payment_method": "telebirr",
-        "status": "approved",
-        "approved_by": 2,
-        "approved_at": "2026-11-03 12:09:38.821 +00:00",
-        "transaction_reference": "TB-987654321",
-        "notes": "Registration Card Fee (150 ETB) and Consultation Fee (350 ETB)",
-        "createdAt": "2026-11-03 12:09:38.821 +00:00",
-        "updatedAt": "2026-11-03 12:09:38.828 +00:00"
-      },
-      {
         "id": 28,
         "visit_id": 22,
         "patient_id": 22,
@@ -911,38 +719,6 @@
         "notes": "Registration Card Fee and Doctor Consultation Fee",
         "createdAt": "2026-11-04 09:45:09.929 +00:00",
         "updatedAt": "2026-11-04 09:45:22.900 +00:00"
-      },
-      {
-        "id": 29,
-        "visit_id": 23,
-        "patient_id": 23,
-        "receipt_number": "REC-20261104-3147",
-        "total_amount": 500,
-        "amount_paid": 0,
-        "payment_method": "cash",
-        "status": "pending",
-        "approved_by": null,
-        "approved_at": null,
-        "transaction_reference": null,
-        "notes": "Registration Card Fee and Doctor Consultation Fee",
-        "createdAt": "2026-11-04 09:45:23.673 +00:00",
-        "updatedAt": "2026-11-04 09:45:23.673 +00:00"
-      },
-      {
-        "id": 30,
-        "visit_id": 23,
-        "patient_id": 23,
-        "receipt_number": "PRC-20261104-6939",
-        "total_amount": 350,
-        "amount_paid": 0,
-        "payment_method": "cash",
-        "status": "pending",
-        "approved_by": null,
-        "approved_at": null,
-        "transaction_reference": null,
-        "notes": "Procedure Fee (LABORATORY): Complete Blood Count (CBC / FBC)",
-        "createdAt": "2026-11-04 09:45:23.868 +00:00",
-        "updatedAt": "2026-11-04 09:45:23.868 +00:00"
       }
     ],
     "payment_allocations": [
@@ -1007,26 +783,6 @@
         "updatedAt": "2026-10-24 16:31:29.240 +00:00"
       },
       {
-        "id": 7,
-        "payment_id": 4,
-        "service_id": 1,
-        "procedure_request_id": null,
-        "allocation_type": "card_fee",
-        "amount": 150,
-        "createdAt": "2026-10-24 16:31:30.222 +00:00",
-        "updatedAt": "2026-10-24 16:31:30.222 +00:00"
-      },
-      {
-        "id": 8,
-        "payment_id": 4,
-        "service_id": 2,
-        "procedure_request_id": null,
-        "allocation_type": "consultation_fee",
-        "amount": 350,
-        "createdAt": "2026-10-24 16:31:30.223 +00:00",
-        "updatedAt": "2026-10-24 16:31:30.223 +00:00"
-      },
-      {
         "id": 9,
         "payment_id": 5,
         "service_id": 4,
@@ -1045,36 +801,6 @@
         "amount": 550,
         "createdAt": "2026-10-24 16:31:30.608 +00:00",
         "updatedAt": "2026-10-24 16:31:30.608 +00:00"
-      },
-      {
-        "id": 11,
-        "payment_id": 6,
-        "service_id": 1,
-        "procedure_request_id": null,
-        "allocation_type": "card_fee",
-        "amount": 150,
-        "createdAt": "2026-10-24 16:32:41.768 +00:00",
-        "updatedAt": "2026-10-24 16:32:41.768 +00:00"
-      },
-      {
-        "id": 12,
-        "payment_id": 6,
-        "service_id": 2,
-        "procedure_request_id": null,
-        "allocation_type": "consultation_fee",
-        "amount": 350,
-        "createdAt": "2026-10-24 16:32:41.769 +00:00",
-        "updatedAt": "2026-10-24 16:32:41.769 +00:00"
-      },
-      {
-        "id": 13,
-        "payment_id": 7,
-        "service_id": 1,
-        "procedure_request_id": 4,
-        "allocation_type": "laboratory_fee",
-        "amount": 150,
-        "createdAt": "2026-10-24 16:32:42.095 +00:00",
-        "updatedAt": "2026-10-24 16:32:42.095 +00:00"
       },
       {
         "id": 14,
@@ -1165,56 +891,6 @@
         "amount": 150,
         "createdAt": "2026-10-24 17:19:00.931 +00:00",
         "updatedAt": "2026-10-24 17:19:00.931 +00:00"
-      },
-      {
-        "id": 45,
-        "payment_id": 25,
-        "service_id": 1,
-        "procedure_request_id": null,
-        "allocation_type": "card_fee",
-        "amount": 150,
-        "createdAt": "2026-11-03 12:09:38.823 +00:00",
-        "updatedAt": "2026-11-03 12:09:38.823 +00:00"
-      },
-      {
-        "id": 46,
-        "payment_id": 25,
-        "service_id": 2,
-        "procedure_request_id": null,
-        "allocation_type": "consultation_fee",
-        "amount": 350,
-        "createdAt": "2026-11-03 12:09:38.824 +00:00",
-        "updatedAt": "2026-11-03 12:09:38.824 +00:00"
-      },
-      {
-        "id": 53,
-        "payment_id": 29,
-        "service_id": 1,
-        "procedure_request_id": null,
-        "allocation_type": "card_fee",
-        "amount": 150,
-        "createdAt": "2026-11-04 09:45:23.674 +00:00",
-        "updatedAt": "2026-11-04 09:45:23.674 +00:00"
-      },
-      {
-        "id": 54,
-        "payment_id": 29,
-        "service_id": 2,
-        "procedure_request_id": null,
-        "allocation_type": "consultation_fee",
-        "amount": 350,
-        "createdAt": "2026-11-04 09:45:23.674 +00:00",
-        "updatedAt": "2026-11-04 09:45:23.674 +00:00"
-      },
-      {
-        "id": 55,
-        "payment_id": 30,
-        "service_id": 4,
-        "procedure_request_id": 17,
-        "allocation_type": "laboratory_fee",
-        "amount": 350,
-        "createdAt": "2026-11-04 09:45:23.869 +00:00",
-        "updatedAt": "2026-11-04 09:45:23.869 +00:00"
       }
     ],
     "consultations": [
@@ -1267,38 +943,6 @@
         "updatedAt": "2026-10-24 16:31:29.074 +00:00"
       },
       {
-        "id": 4,
-        "visit_id": 7,
-        "patient_id": 7,
-        "doctor_id": 6,
-        "consultation_date": "2026-10-24 16:32:42.052 +00:00",
-        "symptoms": "Fever and chills",
-        "examination_findings": null,
-        "diagnosis": null,
-        "treatment_plan": null,
-        "clinical_notes": "Checking blood counts",
-        "status": "in_progress",
-        "completed_at": null,
-        "createdAt": "2026-10-24 16:32:42.053 +00:00",
-        "updatedAt": "2026-10-24 16:32:42.053 +00:00"
-      },
-      {
-        "id": 13,
-        "visit_id": 19,
-        "patient_id": 19,
-        "doctor_id": 3,
-        "consultation_date": "2026-11-03 12:09:38.830 +00:00",
-        "symptoms": "Fever (38.8C), chills, generalized body weakness, and throbbing headache for 3 days.",
-        "examination_findings": "Febrile, alert, no signs of meningism. Spleen palpable 1cm below costal margin.",
-        "diagnosis": "Acute Febrile Illness - Suspected Plasmodium falciparum Malaria",
-        "treatment_plan": "Ordered STAT Malaria RDT and Complete Blood Count. Oral rehydration advised.",
-        "clinical_notes": "Patient advised to rest and stay hydrated pending diagnostic blood film confirmation.",
-        "status": "in_progress",
-        "completed_at": null,
-        "createdAt": "2026-11-03 12:09:38.830 +00:00",
-        "updatedAt": "2026-11-03 12:09:38.830 +00:00"
-      },
-      {
         "id": 15,
         "visit_id": 22,
         "patient_id": 22,
@@ -1313,22 +957,6 @@
         "completed_at": null,
         "createdAt": "2026-11-04 09:45:09.992 +00:00",
         "updatedAt": "2026-11-04 09:45:22.948 +00:00"
-      },
-      {
-        "id": 16,
-        "visit_id": 23,
-        "patient_id": 23,
-        "doctor_id": 3,
-        "consultation_date": "2026-11-04 09:45:23.836 +00:00",
-        "symptoms": null,
-        "examination_findings": null,
-        "diagnosis": "Plasmodium Falciparum Malaria (Microscopically Confirmed)",
-        "treatment_plan": null,
-        "clinical_notes": null,
-        "status": "completed",
-        "completed_at": "2026-11-04 09:45:23.851 +00:00",
-        "createdAt": "2026-11-04 09:45:23.836 +00:00",
-        "updatedAt": "2026-11-04 09:45:23.852 +00:00"
       },
       {
         "id": 17,
@@ -1369,16 +997,6 @@
         "updatedAt": "2026-10-24 16:31:30.511 +00:00"
       },
       {
-        "id": 10,
-        "consultation_id": 13,
-        "patient_id": 19,
-        "code": "B54",
-        "description": "Acute Febrile Illness - Suspected Plasmodium falciparum Malaria",
-        "type": "provisional",
-        "createdAt": "2026-11-03 12:09:38.831 +00:00",
-        "updatedAt": "2026-11-03 12:09:38.831 +00:00"
-      },
-      {
         "id": 12,
         "consultation_id": 15,
         "patient_id": 22,
@@ -1387,16 +1005,6 @@
         "type": "provisional",
         "createdAt": "2026-11-04 09:45:09.994 +00:00",
         "updatedAt": "2026-11-04 09:45:22.983 +00:00"
-      },
-      {
-        "id": 13,
-        "consultation_id": 16,
-        "patient_id": 23,
-        "code": null,
-        "description": "Plasmodium Falciparum Malaria (Microscopically Confirmed)",
-        "type": "final",
-        "createdAt": "2026-11-04 09:45:23.853 +00:00",
-        "updatedAt": "2026-11-04 09:45:23.853 +00:00"
       }
     ],
     "procedure_requests": [
@@ -1449,22 +1057,6 @@
         "updatedAt": "2026-10-24 16:31:30.893 +00:00"
       },
       {
-        "id": 4,
-        "visit_id": 7,
-        "patient_id": 7,
-        "doctor_id": 6,
-        "technician_id": null,
-        "category": "laboratory",
-        "clinical_reason": "Stat CBC workup",
-        "priority": "routine",
-        "status": "payment_approved",
-        "cancellation_reason": null,
-        "total_cost": 150,
-        "paid_amount": 150,
-        "createdAt": "2026-10-24 16:32:42.089 +00:00",
-        "updatedAt": "2026-10-24 16:32:42.152 +00:00"
-      },
-      {
         "id": 5,
         "visit_id": 8,
         "patient_id": 8,
@@ -1497,22 +1089,6 @@
         "updatedAt": "2026-10-24 17:22:19.632 +00:00"
       },
       {
-        "id": 14,
-        "visit_id": 19,
-        "patient_id": 19,
-        "doctor_id": 3,
-        "technician_id": 4,
-        "category": "laboratory",
-        "clinical_reason": "R/O Acute Malaria infection",
-        "priority": "urgent",
-        "status": "results_ready",
-        "cancellation_reason": null,
-        "total_cost": 180,
-        "paid_amount": 0,
-        "createdAt": "2026-11-03 12:09:38.837 +00:00",
-        "updatedAt": "2026-11-03 12:09:38.837 +00:00"
-      },
-      {
         "id": 16,
         "visit_id": 22,
         "patient_id": 22,
@@ -1527,22 +1103,6 @@
         "paid_amount": 0,
         "createdAt": "2026-11-04 09:45:09.997 +00:00",
         "updatedAt": "2026-11-04 09:45:23.038 +00:00"
-      },
-      {
-        "id": 17,
-        "visit_id": 23,
-        "patient_id": 23,
-        "doctor_id": 3,
-        "technician_id": 4,
-        "category": "laboratory",
-        "clinical_reason": "Urgent diagnostic panel for acute febrile illness",
-        "priority": "urgent",
-        "status": "sent_to_doctor",
-        "cancellation_reason": null,
-        "total_cost": 350,
-        "paid_amount": 180,
-        "createdAt": "2026-11-04 09:45:23.867 +00:00",
-        "updatedAt": "2026-11-04 09:45:23.941 +00:00"
       }
     ],
     "procedure_items": [
@@ -1601,15 +1161,6 @@
         "updatedAt": "2026-10-24 16:31:30.879 +00:00"
       },
       {
-        "id": 7,
-        "request_id": 4,
-        "service_id": 1,
-        "unit_price": 150,
-        "status": "paid",
-        "createdAt": "2026-10-24 16:32:42.092 +00:00",
-        "updatedAt": "2026-10-24 16:32:42.154 +00:00"
-      },
-      {
         "id": 8,
         "request_id": 5,
         "service_id": 4,
@@ -1653,24 +1204,6 @@
         "status": "completed",
         "createdAt": "2026-10-24 17:19:00.927 +00:00",
         "updatedAt": "2026-10-24 17:22:19.632 +00:00"
-      },
-      {
-        "id": 20,
-        "request_id": 14,
-        "service_id": 5,
-        "unit_price": 0,
-        "status": "completed",
-        "createdAt": "2026-11-03 12:09:38.839 +00:00",
-        "updatedAt": "2026-11-03 12:09:38.839 +00:00"
-      },
-      {
-        "id": 21,
-        "request_id": 17,
-        "service_id": 4,
-        "unit_price": 350,
-        "status": "completed",
-        "createdAt": "2026-11-04 09:45:23.867 +00:00",
-        "updatedAt": "2026-11-04 09:45:23.940 +00:00"
       }
     ],
     "laboratory_results": [
@@ -1765,24 +1298,6 @@
         "updatedAt": "2026-10-24 17:22:19.630 +00:00"
       },
       {
-        "id": 11,
-        "request_id": 14,
-        "request_item_id": null,
-        "patient_id": 19,
-        "technician_id": 4,
-        "test_name": "Malaria Rapid Diagnostic Test (RDT) & Blood Film",
-        "findings": "RDT: Plasmodium falciparum POSITIVE; Blood Film: P. falciparum ring stages identified (Density: ++)",
-        "results_data": "{\"template_code\":\"TMPL-MALARIA\",\"template_name\":\"Malaria Rapid Diagnostic Test (RDT) & Blood Film Smear\",\"department\":\"Parasitology\",\"specimen_type\":\"Capillary / Venous Whole Blood\",\"parameters\":[{\"id\":\"rdt_result\",\"name\":\"Malaria RDT\",\"value\":\"Positive (P. falciparum)\",\"flag\":\"POSITIVE\",\"unit\":\"\",\"ref_range_text\":\"Negative\"},{\"id\":\"species\",\"name\":\"Parasite Species\",\"value\":\"Plasmodium falciparum\",\"flag\":\"POSITIVE\",\"unit\":\"\",\"ref_range_text\":\"No hemoparasites\"},{\"id\":\"density\",\"name\":\"Parasitemia Density\",\"value\":\"Moderate (++)\",\"flag\":\"ABNORMAL\",\"unit\":\"\",\"ref_range_text\":\"Negative\"}]}",
-        "observations": "Thin blood smear confirms ring form trophozoites of P. falciparum. No mixed species identified.",
-        "status": "final",
-        "completed_at": "2026-11-03 12:09:38.840 +00:00",
-        "verified_by": null,
-        "doctor_comments": "Initiate Artemether/Lumefantrine treatment immediately. Repeat smear in 48 hours.",
-        "doctor_reviewed_at": "2026-11-03 12:09:38.840 +00:00",
-        "createdAt": "2026-11-03 12:09:38.840 +00:00",
-        "updatedAt": "2026-11-03 12:09:38.840 +00:00"
-      },
-      {
         "id": 13,
         "request_id": 16,
         "request_item_id": null,
@@ -1799,24 +1314,6 @@
         "doctor_reviewed_at": "2026-11-04 09:45:09.999 +00:00",
         "createdAt": "2026-11-04 09:45:09.999 +00:00",
         "updatedAt": "2026-11-04 09:45:23.088 +00:00"
-      },
-      {
-        "id": 14,
-        "request_id": 17,
-        "request_item_id": null,
-        "patient_id": 23,
-        "technician_id": 4,
-        "test_name": "LABORATORY Examination",
-        "findings": "Malaria: Reactive band observed. HIV: Non-reactive.",
-        "results_data": "{\"parameters\":[{\"name\":\"HIV 1/2 Rapid Screening\",\"value\":\"Negative\",\"flag\":\"NORMAL\"},{\"name\":\"Malaria Rapid Diagnostic Test (Pf/Pv)\",\"value\":\"Positive (P. falciparum)\",\"flag\":\"ABNORMAL\"}]}",
-        "observations": "FINAL CERTIFIED CLINICAL FINDINGS: Plasmodium falciparum confirmed. Attending doctor alerted.",
-        "status": "final",
-        "completed_at": "2026-11-04 09:45:23.939 +00:00",
-        "verified_by": 4,
-        "doctor_comments": "Acknowledged positive malaria result. Artemether-Lumefantrine treatment initiated.",
-        "doctor_reviewed_at": "2026-11-04 09:45:23.952 +00:00",
-        "createdAt": "2026-11-04 09:45:23.925 +00:00",
-        "updatedAt": "2026-11-04 09:45:23.952 +00:00"
       }
     ],
     "prescriptions": [
@@ -1831,16 +1328,6 @@
         "updatedAt": "2026-10-24 16:31:29.111 +00:00"
       },
       {
-        "id": 9,
-        "consultation_id": 13,
-        "patient_id": 19,
-        "doctor_id": 3,
-        "status": "prescribed",
-        "instructions": null,
-        "createdAt": "2026-11-03 12:09:38.833 +00:00",
-        "updatedAt": "2026-11-03 12:09:38.833 +00:00"
-      },
-      {
         "id": 11,
         "consultation_id": 15,
         "patient_id": 22,
@@ -1849,16 +1336,6 @@
         "instructions": null,
         "createdAt": "2026-11-04 09:45:09.995 +00:00",
         "updatedAt": "2026-11-04 09:45:23.116 +00:00"
-      },
-      {
-        "id": 12,
-        "consultation_id": 16,
-        "patient_id": 23,
-        "doctor_id": 3,
-        "status": "active",
-        "instructions": "Take as instructed by physician",
-        "createdAt": "2026-11-04 09:45:23.853 +00:00",
-        "updatedAt": "2026-11-04 09:45:23.853 +00:00"
       }
     ],
     "prescription_items": [
@@ -1887,32 +1364,6 @@
         "quantity": 20,
         "createdAt": "2026-10-24 16:31:29.152 +00:00",
         "updatedAt": "2026-10-24 16:31:29.152 +00:00"
-      },
-      {
-        "id": 10,
-        "prescription_id": 9,
-        "medication_name": "Paracetamol",
-        "dosage": "1000mg",
-        "frequency": "TDS (3x daily as needed)",
-        "duration": "3 days",
-        "route": "Oral",
-        "instructions": "Take after meals for fever relief",
-        "quantity": 10,
-        "createdAt": "2026-11-03 12:09:38.834 +00:00",
-        "updatedAt": "2026-11-03 12:09:38.834 +00:00"
-      },
-      {
-        "id": 13,
-        "prescription_id": 12,
-        "medication_name": "Artemether + Lumefantrine (Coartem)",
-        "dosage": "20/120mg 4 tablets",
-        "frequency": "BID (Twice daily)",
-        "duration": "3 days",
-        "route": "Oral",
-        "instructions": "Take with fatty food or milk",
-        "quantity": 24,
-        "createdAt": "2026-11-04 09:45:23.854 +00:00",
-        "updatedAt": "2026-11-04 09:45:23.854 +00:00"
       }
     ],
     "appointments": [
@@ -1927,18 +1378,6 @@
         "status": "scheduled",
         "createdAt": "2026-10-24 16:31:29.169 +00:00",
         "updatedAt": "2026-10-24 16:31:29.169 +00:00"
-      },
-      {
-        "id": 6,
-        "patient_id": 23,
-        "doctor_id": 3,
-        "appointment_date": "2026-11-11",
-        "appointment_time": "10:00",
-        "type": "follow_up",
-        "notes": null,
-        "status": "scheduled",
-        "createdAt": "2026-11-04 09:45:23.883 +00:00",
-        "updatedAt": "2026-11-04 09:45:23.883 +00:00"
       }
     ],
     "lab_templates": [

@@ -196,14 +196,26 @@ const restoreFromLatestDump = async (customDumpPath = null) => {
       }
     }
 
-    // 3. Patients
+    // 3. Patients (with full medical history synchronization)
     if (Array.isArray(tables.patients)) {
       for (const p of tables.patients) {
         const [pat, created] = await Patient.findOrCreate({
           where: { card_number: p.card_number },
           defaults: p
         });
-        if (created) restoredPatients++;
+        if (created) {
+          restoredPatients++;
+        } else {
+          // Synchronize medical history, allergies, and contact fields if newer in dump
+          let updated = false;
+          ['allergies', 'medical_history', 'current_medications', 'notes', 'phone', 'address', 'emergency_contact'].forEach(f => {
+            if (p[f] !== undefined && p[f] !== null && p[f] !== pat[f]) {
+              pat[f] = p[f];
+              updated = true;
+            }
+          });
+          if (updated) await pat.save();
+        }
       }
     }
 

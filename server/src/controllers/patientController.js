@@ -393,7 +393,21 @@ const getPatientById = async (req, res, next) => {
               model: User,
               as: 'doctor',
               attributes: ['id', 'name', 'email', 'role']
+            },
+            {
+              model: Consultation,
+              as: 'consultations',
+              include: [{ model: User, as: 'doctor', attributes: ['id', 'name'] }]
             }
+          ],
+          order: [['id', 'DESC']]
+        },
+        {
+          model: Consultation,
+          as: 'consultations',
+          include: [
+            { model: User, as: 'doctor', attributes: ['id', 'name', 'email'] },
+            { model: Diagnosis, as: 'diagnoses' }
           ],
           order: [['id', 'DESC']]
         },
@@ -699,12 +713,19 @@ const getMedicalHistory = async (req, res, next) => {
         id: patient.id,
         card_number: patient.card_number,
         full_name: patient.full_name,
+        dob: patient.dob,
         age: patient.age,
         sex: patient.sex,
         phone: patient.phone,
+        address: patient.address,
+        emergency_contact: patient.emergency_contact,
+        consultation_type: patient.consultation_type,
+        registration_date: patient.registration_date,
         allergies: patient.allergies,
         medical_history: patient.medical_history,
-        current_medications: patient.current_medications
+        current_medications: patient.current_medications,
+        notes: patient.notes,
+        status: patient.status
       },
       consultations,
       procedureRequests,
