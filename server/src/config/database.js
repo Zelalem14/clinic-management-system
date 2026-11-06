@@ -5,35 +5,38 @@ const os = require('os');
 require('dotenv').config();
 
 // Determine dialect: postgres, mysql, or sqlite
-let dialect = (process.env.DB_DIALECT || '').toLowerCase().trim();
-if (!dialect) {
-  if (process.env.DATABASE_URL) {
-    const url = process.env.DATABASE_URL.toLowerCase();
-    dialect = url.startsWith('postgres') ? 'postgres' : 'mysql';
-  } else {
-    dialect = 'sqlite';
-  }
+// If DATABASE_URL is present, always prioritize it as cloud database (PostgreSQL by default)
+let dialect = '';
+const dbUrlRaw = (process.env.DATABASE_URL || '').trim();
+
+if (dbUrlRaw) {
+  const urlLower = dbUrlRaw.toLowerCase();
+  dialect = (urlLower.startsWith('postgres') || urlLower.startsWith('postgresql')) ? 'postgres' : 'mysql';
+} else if (process.env.DB_DIALECT) {
+  dialect = process.env.DB_DIALECT.toLowerCase().trim();
+} else {
+  dialect = 'sqlite';
 }
 
 let sequelize;
 
-if (process.env.DATABASE_URL) {
+if (dbUrlRaw) {
   // Support standard cloud database connection strings (e.g. Render Postgres, Supabase, Neon, Railway, TiDB Cloud, Aiven)
-  const isSsl = process.env.DB_SSL !== 'false';
-  const dbUrl = process.env.DATABASE_URL;
-  const isPostgres = dbUrl.startsWith('postgres://') || dbUrl.startsWith('postgresql://');
+  const isPostgres = dialect === 'postgres';
+  const urlLower = dbUrlRaw.toLowerCase();
+  const disableSsl = process.env.DB_SSL === 'false' || urlLower.includes('sslmode=disable');
 
-  sequelize = new Sequelize(dbUrl, {
+  sequelize = new Sequelize(dbUrlRaw, {
     dialect: isPostgres ? 'postgres' : 'mysql',
     logging: process.env.DB_LOGGING === 'true' ? console.log : false,
-    dialectOptions: isSsl ? {
+    dialectOptions: disableSsl ? {} : {
       ssl: {
         require: true,
         rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED === 'true'
       }
-    } : {},
+    },
     pool: {
-      max: 10,
+      max: parseInt(process.env.DB_POOL_MAX || '10', 10),
       min: 0,
       acquire: 30000,
       idle: 10000

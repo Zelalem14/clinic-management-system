@@ -16,6 +16,8 @@ services:
         value: production
       - key: AUTO_SEED
         value: "false"
+      - key: DB_DIALECT
+        value: postgres
       - key: JWT_SECRET
         generateValue: true
       - key: DATABASE_URL

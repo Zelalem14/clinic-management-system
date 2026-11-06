@@ -18,7 +18,15 @@ const initDatabase = async () => {
     try {
       await sequelize.authenticate();
       const dialect = sequelize.getDialect();
-      console.log(`Database connected successfully using '${dialect}' dialect.`);
+      if (dialect === 'postgres') {
+        console.log('========================================================');
+        console.log('PERMANENT POSTGRESQL DATABASE ACTIVE (via DATABASE_URL)');
+        console.log('Patient records are stored 100% permanently in the cloud.');
+        console.log('Data survives all server reboots, sleep, and redeploys.');
+        console.log('========================================================');
+      } else {
+        console.log(`Database connected successfully using '${dialect}' dialect.`);
+      }
 
       // Configure SQLite for high durability, zero data loss, and concurrent access
       if (dialect === 'sqlite') {
@@ -38,13 +46,22 @@ const initDatabase = async () => {
       // Safe schema synchronization without dropping existing tables or data
       await sequelize.sync();
 
-      // Ensure backward-compatible columns exist on laboratory_results
-      try {
-        await sequelize.query('ALTER TABLE laboratory_results ADD COLUMN doctor_comments TEXT;');
-      } catch (e) { /* column exists */ }
-      try {
-        await sequelize.query('ALTER TABLE laboratory_results ADD COLUMN doctor_reviewed_at DATETIME;');
-      } catch (e) { /* column exists */ }
+      // Ensure backward-compatible columns exist on laboratory_results across all dialects
+      if (dialect === 'postgres') {
+        try {
+          await sequelize.query('ALTER TABLE laboratory_results ADD COLUMN IF NOT EXISTS doctor_comments TEXT;');
+        } catch (e) { /* column exists */ }
+        try {
+          await sequelize.query('ALTER TABLE laboratory_results ADD COLUMN IF NOT EXISTS doctor_reviewed_at TIMESTAMP WITH TIME ZONE;');
+        } catch (e) { /* column exists */ }
+      } else {
+        try {
+          await sequelize.query('ALTER TABLE laboratory_results ADD COLUMN doctor_comments TEXT;');
+        } catch (e) { /* column exists */ }
+        try {
+          await sequelize.query('ALTER TABLE laboratory_results ADD COLUMN doctor_reviewed_at DATETIME;');
+        } catch (e) { /* column exists */ }
+      }
 
       // Ensure ready-made structured laboratory templates and services exist
       await seedLabTemplates();

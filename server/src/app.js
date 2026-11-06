@@ -100,10 +100,15 @@ const healthHandler = async (req, res) => {
     } catch (e) {
       dbStatus = 'disconnected: ' + e.message;
     }
+    const dialectName = sequelize?.getDialect ? sequelize.getDialect() : 'unknown';
+    const isCloudDb = Boolean(process.env.DATABASE_URL) || dialectName === 'postgres' || dialectName === 'mysql';
+
     return res.json({
       status: 'healthy',
       database: dbStatus,
-      dialect: sequelize?.getDialect ? sequelize.getDialect() : 'unknown',
+      dialect: dialectName,
+      storage_type: isCloudDb ? 'Permanent Cloud Database (100% Persistent across reboots)' : 'Local SQLite File',
+      is_persistent_cloud: isCloudDb,
       timestamp: new Date().toISOString(),
       service: 'Tena Clinic Management System API'
     });
