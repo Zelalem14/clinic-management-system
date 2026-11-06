@@ -40,15 +40,16 @@ process.on('SIGTERM', () => handleGracefulShutdown('SIGTERM'));
 if (!process.env.VERCEL && !process.env.AWS_LAMBDA_FUNCTION_NAME) {
   initDatabase()
     .then(() => {
-      serverInstance = app.listen(PORT, () => {
+      serverInstance = app.listen(PORT, '0.0.0.0', () => {
         console.log(`Clinic Management System API running at http://localhost:${PORT}`);
+        console.log(`Network access enabled: listening on 0.0.0.0:${PORT} (LAN accessible)`);
         console.log(`Health check: http://localhost:${PORT}/api/health`);
       });
     })
     .catch((error) => {
       console.error('Failed to initialize database on startup:', error.message);
       // Keep server running so error endpoints or logs can be reached
-      serverInstance = app.listen(PORT, () => {
+      serverInstance = app.listen(PORT, '0.0.0.0', () => {
         console.log(`Clinic API running with degraded database state at http://localhost:${PORT}`);
       });
     });

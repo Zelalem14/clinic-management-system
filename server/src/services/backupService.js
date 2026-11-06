@@ -196,7 +196,7 @@ const restoreFromLatestDump = async (customDumpPath = null) => {
       }
     }
 
-    // 3. Patients (with full medical history synchronization)
+    // 3. Patients (with safe non-destructive synchronization)
     if (Array.isArray(tables.patients)) {
       for (const p of tables.patients) {
         const [pat, created] = await Patient.findOrCreate({
@@ -206,10 +206,10 @@ const restoreFromLatestDump = async (customDumpPath = null) => {
         if (created) {
           restoredPatients++;
         } else {
-          // Synchronize medical history, allergies, and contact fields if newer in dump
+          // Only fill in fields that are currently empty or null in the live database
           let updated = false;
           ['allergies', 'medical_history', 'current_medications', 'notes', 'phone', 'address', 'emergency_contact'].forEach(f => {
-            if (p[f] !== undefined && p[f] !== null && p[f] !== pat[f]) {
+            if ((pat[f] === null || pat[f] === undefined || pat[f] === '') && p[f]) {
               pat[f] = p[f];
               updated = true;
             }

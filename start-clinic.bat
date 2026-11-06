@@ -18,10 +18,19 @@ start "Clinic Frontend (Port 5173)" cmd /k "cd /d %~dp0client && npm run dev"
 
 echo.
 echo ====================================================
-echo All services started!
-echo Frontend: http://localhost:5173
-echo Backend:  http://localhost:5000
-echo Database: %~dp0database\clinic.sqlite
+echo All clinic services started successfully!
+echo.
+echo [Local Access on this PC]:
+echo   Frontend App: http://localhost:5173
+echo   Backend API:  http://localhost:5000
+echo.
+echo [Access from Another Computer (Wi-Fi / LAN)]:
+echo   Open browser to: http://[THIS-PC-IP]:5173
+echo   (Type 'ipconfig' in Command Prompt to see your IPv4 address)
+echo.
+echo [Permanent Database]:
+echo   File: %~dp0database\clinic.sqlite
+echo   Mode: High-durability WAL (Safe across reboots)
 echo ====================================================
 echo.
 pause

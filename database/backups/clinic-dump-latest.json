@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "exported_at": "2026-11-05T11:18:47.354Z",
+  "exported_at": "2026-11-06T04:48:34.524Z",
   "dialect": "sqlite",
   "tables": {
     "users": [
