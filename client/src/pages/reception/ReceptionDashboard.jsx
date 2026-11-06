@@ -243,7 +243,15 @@ export const ReceptionDashboard = () => {
                       <td colSpan={5} className="px-6 py-10 text-center text-slate-400">
                         <Calendar className="w-8 h-8 text-slate-300 mx-auto mb-2" />
                         <p className="font-medium text-slate-600">No visits recorded today yet.</p>
-                        <p className="text-xs text-slate-400 mt-0.5">Click "All Registered Patients" tab to view permanent patient files or register a returning visit.</p>
+                        <p className="text-xs text-slate-400 mt-0.5">All registered patients are permanently stored in the database.</p>
+                        <button
+                          type="button"
+                          onClick={() => setActiveTableTab('patients')}
+                          className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 bg-brand-50 hover:bg-brand-100 text-brand-700 font-bold text-xs rounded-xl border border-brand-200 transition-colors cursor-pointer"
+                        >
+                          <Users className="w-3.5 h-3.5 text-brand-600" />
+                          <span>View All {stats?.total_patients || recentPatients.length} Permanent Patients &rarr;</span>
+                        </button>
                       </td>
                     </tr>
                   ) : (
